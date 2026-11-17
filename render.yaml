@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: kocaeli-katilim
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: "echo 'Kurulum gerekmiyor'"
+    startCommand: node server.js
+    healthCheckPath: /saglik
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false
