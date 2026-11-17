@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yönetim · Katılım Platformu</title>
+<link rel="stylesheet" href="/ortak.css">
+<link rel="icon" href="/favicon.svg">
+<style>
+  body { font-size: 14.5px; }
+  .duzen { display: grid; grid-template-columns: 270px 1fr; min-height: 100vh; }
+  aside { background: var(--lacivert); color: #dfeaf2; padding: 18px 14px; display: flex; flex-direction: column; gap: 12px; }
+  aside .marka { font-weight: 800; letter-spacing: .14em; color: var(--turkuaz); font-size: .75rem; padding: 0 6px; }
+  aside h1 { font-size: 1.1rem; margin: 0 6px 6px; color: #fff; }
+  .etk-listesi { display: flex; flex-direction: column; gap: 4px; }
+  .etk { text-align: left; background: transparent; border: none; color: inherit; padding: 10px 10px; border-radius: 10px; }
+  .etk:hover { background: rgba(255,255,255,.07); }
+  .etk.secili { background: rgba(255,255,255,.14); color: #fff; }
+  .etk b { display: block; font-weight: 600; }
+  .etk small { opacity: .75; font-size: .8em; }
+  aside .btn { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.2); }
+  aside .btn:hover { background: rgba(255,255,255,.18); }
+  aside .alt { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+
+  main { padding: 22px 28px 60px; min-width: 0; }
+  .bas { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .bas h2 { margin: 0; font-size: 1.45rem; color: var(--lacivert); }
+  .bas .alt-satir { color: var(--soluk); margin-top: 2px; }
+  .bas .sag { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .sekmeler { display: flex; gap: 4px; border-bottom: 1px solid var(--cizgi); margin-bottom: 18px; }
+  .sekme { background: none; border: none; padding: 10px 14px; font-weight: 600; color: var(--soluk); border-bottom: 2.5px solid transparent; margin-bottom: -1px; }
+  .sekme.secili { color: var(--lacivert); border-bottom-color: var(--turkuaz); }
+  .kart { background: #fff; border-radius: var(--r); box-shadow: var(--golge); padding: 18px; }
+
+  /* Canlı yönetim */
+  .kontrol-cubuk { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .kontrol-cubuk .sayi { margin-left: auto; font-weight: 700; color: var(--lacivert); display: flex; align-items: center; gap: 8px; }
+  .kontrol-cubuk label { display: flex; gap: 6px; align-items: center; color: var(--soluk); font-size: .9em; }
+  .canli-izgara { display: grid; grid-template-columns: minmax(360px, 44%) 1fr; gap: 18px; align-items: start; }
+  .soru-satir { display: grid; grid-template-columns: 28px 1fr; gap: 10px; padding: 12px; border-radius: 12px; border: 1.5px solid var(--cizgi); margin-bottom: 8px; background: #fff; cursor: pointer; }
+  .soru-satir:hover { border-color: #c4d0db; }
+  .soru-satir.on { border-color: var(--turkuaz); background: #f3fbfc; }
+  .soru-satir.ekranda { box-shadow: inset 4px 0 0 var(--turkuaz); }
+  .soru-satir .no { font-weight: 800; color: var(--soluk); }
+  .soru-satir .metin { font-weight: 600; line-height: 1.3; }
+  .soru-satir .meta { display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap; font-size: .85em; color: var(--soluk); }
+  .soru-satir .dugmeler { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .onizleme { position: sticky; top: 16px; }
+  .onizleme h3 { margin: 0 0 4px; font-size: 1.05rem; color: var(--lacivert); }
+  .onizleme .kutu { height: 380px; margin-top: 14px; --cubuk-yazi: .92rem; --cubuk-yuk: 26px; --cubuk-aralik: 10px; --halka-sayi: 2rem; --ortalama: 3rem; --kart-sutun: 2; --kart-yazi: .9rem; --zemin-halka: #fff; --bulut-taban: .9; }
+  .moderasyon { margin-top: 14px; max-height: 420px; overflow: auto; }
+  .mod-oge { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 10px 0; border-top: 1px solid var(--cizgi); }
+  .mod-oge.gizlendi .yazi { text-decoration: line-through; opacity: .5; }
+  .mod-oge .kim { font-size: .8em; color: var(--soluk); }
+
+  /* Soru düzenleyici */
+  .sd { border: 1.5px solid var(--cizgi); border-radius: 12px; padding: 14px; margin-bottom: 12px; background: #fff; }
+  .sd-ust { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .sd-ust .no { font-weight: 800; color: var(--turkuaz); }
+  .sd-ust .bosluk { flex: 1; }
+  .izgara2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .izgara4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  label.f { display: block; }
+  label.f > span { display: block; font-size: .82em; font-weight: 700; color: var(--soluk); margin-bottom: 4px; }
+  input[type=text], input[type=number], input[type=date], input[type=password], select, textarea { width: 100%; border: 1.5px solid var(--cizgi); border-radius: 9px; padding: 8px 10px; background: #fff; outline: none; }
+  input:focus, select:focus, textarea:focus { border-color: var(--turkuaz); }
+  textarea { resize: vertical; }
+  .kaydet-cubuk { position: sticky; bottom: 0; background: linear-gradient(transparent, var(--zemin) 30%); padding: 18px 0 6px; display: flex; gap: 10px; align-items: center; }
+  .bildirim { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--metin); color: #fff; padding: 10px 18px; border-radius: 10px; z-index: 50; box-shadow: 0 8px 30px rgba(0,0,0,.2); animation: belir .25s; }
+  table { width: 100%; border-collapse: collapse; font-size: .92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--cizgi); }
+  th { color: var(--soluk); font-size: .82em; text-transform: uppercase; letter-spacing: .04em; }
+  .baglantilar { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; }
+  .baglantilar .qr { width: 150px; height: 150px; }
+  .baglantilar .qr svg { width: 100%; height: 100%; }
+  code { background: var(--zemin); padding: 2px 6px; border-radius: 6px; font-size: .92em; word-break: break-all; }
+
+  .adres-bandi { display: flex; gap: 14px; align-items: center; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: .95em; }
+  .adres-bandi.iyi { background: #e6f5ec; color: #145c35; }
+  .adres-bandi.bekle { background: #fff3df; color: #7a4a00; }
+  .adres-bandi.kotu { background: #fbe9e9; color: #8a2020; }
+  .adres-bandi code { background: rgba(255,255,255,.7); font-size: 1em; font-weight: 700; }
+  .adres-bandi .ikon { font-size: 1.3em; }
+  .adres-bandi > div { flex: 1; min-width: 260px; }
+  .giris { position: fixed; inset: 0; background: linear-gradient(160deg, var(--lacivert), var(--turkuaz) 140%); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .giris form { background: #fff; padding: 30px; border-radius: 18px; width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+  .giris h2 { margin: 0 0 4px; color: var(--lacivert); }
+  .giris p { color: var(--soluk); margin: 0 0 16px; }
+  @media (max-width: 1000px) { .duzen { grid-template-columns: 1fr; } .canli-izgara { grid-template-columns: 1fr; } .izgara4 { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="giris" id="giris">
+  <form id="girisForm">
+    <h2>Yönetim Paneli</h2>
+    <p>Katılım Platformu · Kocaeli 2053</p>
+    <input type="password" id="sifre" placeholder="Şifre" autocomplete="current-password" required>
+    <button class="btn ana" style="width:100%;margin-top:12px">Giriş</button>
+    <div id="girisHata" style="color:var(--hata);margin-top:10px;font-size:.9em"></div>
+  </form>
+</div>
+
+<div class="duzen gizli" id="uygulama">
+  <aside>
+    <div class="marka">KOCAELİ 2053</div>
+    <h1>Katılım Platformu</h1>
+    <div class="etk-listesi" id="etkListesi"></div>
+    <button class="btn" id="yeniEtk">+ Yeni etkinlik</button>
+    <div class="alt">
+      <button class="btn kucuk" id="tumYedek">⬇ Tüm verileri yedekle</button>
+      <button class="btn kucuk" id="yedekYukle">⬆ Yedekten geri yükle</button>
+      <input type="file" id="yedekDosya" accept=".json,application/json" class="gizli">
+      <button class="btn kucuk" id="genelAyar">⚙ Katılım adresi</button>
+      <button class="btn kucuk" id="cikis">Çıkış</button>
+    </div>
+  </aside>
+  <main id="ana"><div style="color:var(--soluk)">Soldan bir etkinlik seçin.</div></main>
+</div>
+
+<script src="/vendor/qrcode.js"></script>
+<script src="/ortak.js"></script>
+<script>
+'use strict';
+let ANAHTAR = sessionStorage.getItem('yonetimAnahtari') || '';
+let ayarlar = { publicUrl: '' };
+let etkinlikler = [], ev = null, canli = null, akis = null;
+let sekme = 'canli', onizlenen = null, oncekiniKapat = true;
+const ana = document.getElementById('ana');
+
+async function api(yol, yontem = 'GET', govde) {
+  const r = await fetch('/api/yonetim' + yol, { method: yontem, headers: { 'Content-Type': 'application/json', 'x-yonetim-anahtari': ANAHTAR }, body: govde ? JSON.stringify(govde) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) { cikisYap(); throw new Error('Oturum sona erdi'); }
+  if (!r.ok) throw new Error(j.hata || 'Hata');
+  return j;
+}
+function bildir(m) { const b = el('div', { class: 'bildirim', text: m }); document.body.append(b); setTimeout(() => b.remove(), 2200); }
+
+/* ---------------- Giriş ---------------- */
+document.getElementById('girisForm').addEventListener('submit', async (e) => {
+  e.preventDefault(); ANAHTAR = document.getElementById('sifre').value;
+  try { await api('/giris', 'POST'); sessionStorage.setItem('yonetimAnahtari', ANAHTAR); acilis(); }
+  catch (err) { document.getElementById('girisHata').textContent = 'Şifre hatalı.'; }
+});
+function cikisYap() { sessionStorage.removeItem('yonetimAnahtari'); ANAHTAR = ''; document.getElementById('giris').classList.remove('gizli'); document.getElementById('uygulama').classList.add('gizli'); akis && akis.kapat(); }
+document.getElementById('cikis').onclick = cikisYap;
+
+/* ---------------- Ücretsiz barındırma koruması ----------------
+   1) Panel açıkken birkaç dakikada bir sunucuya dokunur: ücretsiz planda servis uykuya geçmez.
+   2) Verinin son hâlini bu tarayıcıda saklar; sunucu yeniden başlayıp veri silinmişse tek tıkla geri yükler. */
+const YEDEK_ANAHTAR = 'katilimOtomatikYedek';
+const yanitSayisi = (veri) => (veri.events || []).reduce((t, e) => t + Object.keys(e.answers || {}).length + (e.questions || []).length, 0);
+async function otomatikYedekAl() {
+  if (!ANAHTAR) return;
+  try {
+    const r = await fetch('/api/yonetim/tum-yedek.json', { headers: { 'x-yonetim-anahtari': ANAHTAR }, cache: 'no-store' });
+    if (!r.ok) return;
+    const veri = await r.json();
+    const eski = JSON.parse(localStorage.getItem(YEDEK_ANAHTAR) || 'null');
+    // Sunucu boşalmışsa (yeniden başlama) eldeki dolu yedeğin üzerine yazma
+    if (eski && yanitSayisi(eski.veri) > yanitSayisi(veri)) return;
+    localStorage.setItem(YEDEK_ANAHTAR, JSON.stringify({ tarih: Date.now(), veri }));
+  } catch (_) {}
+}
+async function yedekKontrol() {
+  try {
+    const yerel = JSON.parse(localStorage.getItem(YEDEK_ANAHTAR) || 'null');
+    if (!yerel) return;
+    const r = await fetch('/api/yonetim/tum-yedek.json', { headers: { 'x-yonetim-anahtari': ANAHTAR }, cache: 'no-store' });
+    const sunucu = await r.json();
+    if (yanitSayisi(yerel.veri) <= yanitSayisi(sunucu)) return;
+    const bant = el('div', { class: 'adres-bandi bekle', id: 'yedekBandi' }, el('span', { class: 'ikon', text: '⟲' }),
+      el('div', {}, el('b', { text: 'Sunucu yeniden başlamış, veriler eksik görünüyor. ' }),
+        `Bu tarayıcıda ${new Date(yerel.tarih).toLocaleString('tr-TR')} tarihli bir yedek var. Geri yüklensin mi?`),
+      el('button', { class: 'btn kucuk ana', text: 'Yedeği geri yükle', onclick: async () => {
+        try { await api('/ice-aktar', 'POST', yerel.veri); bildir('Yedek geri yüklendi'); document.getElementById('yedekBandi')?.remove(); await listeYukle(); if (ev) etkinlikAc(ev.id); }
+        catch (e) { bildir(e.message); }
+      } }),
+      el('button', { class: 'btn kucuk', text: 'Yoksay', onclick: () => { localStorage.removeItem(YEDEK_ANAHTAR); document.getElementById('yedekBandi')?.remove(); } }));
+    document.getElementById('ana').prepend(bant);
+  } catch (_) {}
+}
+setInterval(() => { fetch('/saglik', { cache: 'no-store' }).catch(() => {}); }, 4 * 60 * 1000);
+setInterval(otomatikYedekAl, 20000);
+
+async function acilis() {
+  document.getElementById('giris').classList.add('gizli');
+  document.getElementById('uygulama').classList.remove('gizli');
+  ayarlar = await api('/ayarlar');
+  await listeYukle();
+  await yedekKontrol();
+  setTimeout(otomatikYedekAl, 3000);
+  const son = localStorage.getItem('sonEtkinlik');
+  const hedef = etkinlikler.find((x) => x.id === son) || etkinlikler[0];
+  if (hedef) etkinlikAc(hedef.id);
+}
+if (ANAHTAR) api('/giris', 'POST').then(acilis).catch(() => {});
+
+async function listeYukle() {
+  etkinlikler = await api('/etkinlikler');
+  const l = document.getElementById('etkListesi');
+  const durumAd = { aktif: 'Aktif', taslak: 'Taslak', kapali: 'Kapalı' };
+  l.replaceChildren(...etkinlikler.map((x) => el('button', { class: 'etk' + (ev && ev.id === x.id ? ' secili' : ''), onclick: () => etkinlikAc(x.id) },
+    el('b', { text: x.title }), el('small', { text: `${x.code} · ${durumAd[x.status]} · ${x.soru} soru · ${x.katilimci} katılımcı` }))));
+}
+
+document.getElementById('yeniEtk').onclick = async () => {
+  const sablon = etkinlikler.length ? prompt('Yeni etkinliğin adı:\n(İpucu: mevcut bir etkinliği soruları ile kopyalamak için o etkinliğin Ayarlar sekmesindeki "Kopyala" düğmesini kullanın.)', 'Yeni Etkinlik') : 'Yeni Etkinlik';
+  if (!sablon) return;
+  const r = await api('/etkinlikler', 'POST', { title: sablon });
+  await listeYukle(); etkinlikAc(r.id); sekme = 'sorular'; ciz();
+};
+
+document.getElementById('tumYedek').onclick = async () => {
+  const r = await fetch('/api/yonetim/tum-yedek.json', { headers: { 'x-yonetim-anahtari': ANAHTAR } });
+  const a = el('a', { href: URL.createObjectURL(await r.blob()), download: 'katilim-tum-yedek-' + new Date().toISOString().slice(0, 10) + '.json' });
+  document.body.append(a); a.click(); a.remove();
+};
+document.getElementById('yedekYukle').onclick = () => document.getElementById('yedekDosya').click();
+document.getElementById('yedekDosya').onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const veri = JSON.parse(await f.text());
+    const adet = Array.isArray(veri.events) ? veri.events.length : 1;
+    if (!confirm(`${adet} etkinlik yüklenecek. Aynı kodlu mevcut etkinlikler yedekteki hâliyle değiştirilecek. Devam edilsin mi?`)) return;
+    const r = await api('/ice-aktar', 'POST', veri);
+    bildir('Yüklendi: ' + r.yuklenen.join(', '));
+    await listeYukle(); const h = etkinlikler.find((x) => x.code === r.yuklenen[0]); if (h) etkinlikAc(h.id);
+  } catch (err) { bildir(err.message || 'Dosya okunamadı'); }
+};
+
+document.getElementById('genelAyar').onclick = async () => {
+  const v = prompt('Katılımcıların QR ile gideceği dış adres (ör. https://katilim.kocaeli.bel.tr).\nBoş bırakılırsa ekranın açıldığı adres kullanılır.', ayarlar.publicUrl || '');
+  if (v === null) return;
+  ayarlar = await api('/ayarlar', 'PUT', { publicUrl: v.trim() });
+  bildir('Katılım adresi kaydedildi'); ciz();
+};
+
+async function etkinlikAc(id) {
+  ev = await api('/etkinlik/' + id);
+  localStorage.setItem('sonEtkinlik', id);
+  onizlenen = ev.currentQuestionId || (ev.questions[0] && ev.questions[0].id);
+  canli = null;
+  akis && akis.kapat();
+  akis = canliBaglan({ sse: '/api/yonetim/etkinlik/' + id + '/akis?anahtar=' + encodeURIComponent(ANAHTAR), yoklama: '/api/yonetim/etkinlik/' + id + '/canli', olay: 'canli', aralik: 1500,
+    onVeri: (d) => { canli = d; if (sekme === 'canli') canliGuncelle(); } });
+  listeYukle(); ciz();
+}
+
+const katilimUrl = () => ((ayarlar.publicUrl || location.origin).replace(/\/+$/, '')) + '/k/' + encodeURIComponent(ev.code);
+const ekranUrl = () => location.origin + '/ekran/' + encodeURIComponent(ev.code);
+
+/* ---------------- Katılım adresi durumu ---------------- */
+function adresBandi() {
+  const t = ayarlar.tunel || {};
+  const yerel = /localhost|127\.0\.0\.1/.test(location.hostname);
+  let sinif, ikon, icerik;
+  if (ayarlar.publicUrl) {
+    sinif = 'iyi'; ikon = '✔';
+    icerik = [el('b', { text: 'Telefonlar bağlanabilir. ' }), 'QR kodun açtığı adres: ', el('code', { text: ayarlar.publicUrl })];
+    if (t.saglayici === 'Pinggy' && t.baslangic && ayarlar.publicUrlKaynak === 'tunel' && !t.pro) {
+      const kalan = Math.max(0, 60 - Math.floor((Date.now() - t.baslangic) / 60000));
+      icerik.push(el('div', { style: { marginTop: '4px', fontSize: '.9em' }, text: `Ücretsiz Pinggy tüneli: yaklaşık ${kalan} dk sonra adres yenilenecek. Yenilenince QR kod kendiliğinden değişir; bağlantısı kopan katılımcılar QR'ı yeniden okutmalı. Oturumları 60 dakikalık bloklar hâlinde planlayın. İlk girişte Pinggy uyarı sayfası çıkar ("Enter site"); kaldırmak için Pinggy Pro anahtarı Baslat.bat'a yazılabilir.` }));
+      if (kalan <= 10) sinif = 'bekle';
+    }
+  } else if (t.durum === 'baglaniyor') {
+    sinif = 'bekle'; ikon = '⏳'; icerik = [el('b', { text: 'İnternet tüneli açılıyor… ' }), 'Birkaç saniye içinde QR kod kendiliğinden güncellenecek.'];
+  } else if (!yerel) {
+    sinif = 'iyi'; ikon = '✔'; icerik = [el('b', { text: 'Uygulama bu adresten yayında: ' }), el('code', { text: location.origin })];
+  } else {
+    sinif = 'kotu'; ikon = '⚠';
+    icerik = [el('b', { text: 'Telefonlar şu an bağlanamaz: ' }), 'QR kod "localhost" gösteriyor. ',
+      t.mesaj ? t.mesaj + ' ' : 'Baslat.bat dosyasında "TUNEL=1" olmalı. ',
+      (ayarlar.yerelAdresler || []).length ? ['Telefonlar bu bilgisayarla aynı Wi-Fi ağındaysa şu adres denenebilir: ', el('code', { text: ayarlar.yerelAdresler[0] })] : ''];
+  }
+  return el('div', { class: 'adres-bandi ' + sinif, id: 'adresBandi' }, el('span', { class: 'ikon', text: ikon }), el('div', {}, ...icerik.flat()),
+    el("button", { class: "btn kucuk", text: "Adresi elle gir", onclick: () => document.getElementById('genelAyar').click() }));
+}
+setInterval(async () => {
+  if (!ANAHTAR || !ev) return;
+  try {
+    const yeni = await api('/ayarlar');
+    const degisti = yeni.publicUrl !== ayarlar.publicUrl || JSON.stringify(yeni.tunel) !== JSON.stringify(ayarlar.tunel);
+    ayarlar = yeni;
+    { const b = document.getElementById('adresBandi'); if (b) b.replaceWith(adresBandi()); }
+    if (degisti && sekme === 'ayarlar') ciz();
+  } catch (_) {}
+}, 3000);
+
+/* ---------------- Ana çizim ---------------- */
+function ciz() {
+  if (!ev) return;
+  const durumAd = { aktif: 'Aktif — katılıma açık', taslak: 'Taslak', kapali: 'Kapalı' };
+  const durumSec = el('select', { style: { width: 'auto' }, onchange: async (e) => { await api('/etkinlik/' + ev.id, 'PUT', { status: e.target.value }); ev.status = e.target.value; listeYukle(); bildir('Etkinlik durumu: ' + durumAd[ev.status]); } },
+    ...['taslak', 'aktif', 'kapali'].map((d) => el('option', { value: d, selected: ev.status === d, text: durumAd[d] })));
+  const bas = el('div', { class: 'bas' },
+    el('div', {}, el('h2', { text: ev.title }), el('div', { class: 'alt-satir' }, [ev.subtitle, ev.date].filter(Boolean).join(' · '), ' · Kod: ', el('b', { text: ev.code }))),
+    el('div', { class: 'sag' }, durumSec,
+      el('a', { class: 'btn', href: katilimUrl(), target: '_blank', text: 'Katılımcı sayfası ↗' }),
+      el('a', { class: 'btn turkuaz', href: ekranUrl(), target: '_blank', text: '▶ Yansıtma ekranını aç' })));
+  const sekmeler = el('div', { class: 'sekmeler' }, ...[['canli', 'Canlı Yönetim'], ['sorular', 'Sorular'], ['ayarlar', 'Etkinlik Ayarları'], ['veri', 'Katılımcılar ve Veri']].map(([k, ad]) =>
+    el('button', { class: 'sekme' + (sekme === k ? ' secili' : ''), text: ad, onclick: () => { sekme = k; ciz(); } })));
+  const icerik = el('div', { id: 'icerik' });
+  const yb = document.getElementById('yedekBandi');
+  ana.replaceChildren(...(yb ? [yb] : []), adresBandi(), bas, sekmeler, icerik);
+  ({ canli: canliCiz, sorular: sorularCiz, ayarlar: ayarlarCiz, veri: veriCiz })[sekme](icerik);
+}
+
+/* ---------------- Canlı yönetim ---------------- */
+async function kontrol(islem, ek = {}) {
+  try {
+    const r = await api('/etkinlik/' + ev.id + '/kontrol', 'POST', { islem, ...ek });
+    ev.currentQuestionId = r.currentQuestionId; ev.screen = r.screen;
+    for (const x of r.questions) { const q = ev.questions.find((y) => y.id === x.id); if (q) { q.state = x.state; q.showResults = x.showResults; } }
+    if (['sonraki', 'onceki', 'yansit', 'yansit-ac'].includes(islem)) onizlenen = ev.currentQuestionId;
+    canliCiz(document.getElementById('icerik'));
+  } catch (e) { bildir(e.message); }
+}
+
+function canliCiz(kap) {
+  if (ev.status !== 'aktif') kap.replaceChildren(el('div', { class: 'kart', style: { marginBottom: '14px', background: '#fff7e8' } }, `Etkinlik "${ev.status === 'taslak' ? 'Taslak' : 'Kapalı'}" durumda; katılımcılar kayıt olamaz ve yanıt veremez. Toplantı başlamadan önce sağ üstten "Aktif" yapın.`));
+  else kap.replaceChildren();
+  const qs = ev.questions;
+  const kontrolCubuk = el('div', { class: 'kontrol-cubuk' },
+    el('button', { class: 'btn', text: '◀ Önceki', onclick: () => kontrol('onceki') }),
+    el('button', { class: 'btn ana', text: 'Sonraki soru ▶', title: 'Sonraki soruyu yanıta açar ve ekrana yansıtır', onclick: () => kontrol('sonraki', { otomatikAc: true, oncekiniKapat }) }),
+    el('button', { class: 'btn' + (ev.screen === 'lobi' ? ' turkuaz' : ''), text: '▣ Lobi / QR ekranı', onclick: () => kontrol('lobi') }),
+    el('button', { class: 'btn' + (ev.screen === 'tumu' ? ' turkuaz' : ''), text: '▦ Tüm soruları yansıt', title: 'Bütün soruların sonuçlarını tek ekranda gösterir', onclick: () => kontrol('tumu') }),
+    el('button', { class: 'btn', text: 'Tümünü aç', title: 'Anket kipi: tüm sorular aynı anda telefonlarda görünür', onclick: () => kontrol('tumunuAc') }),
+    el('button', { class: 'btn', text: 'Tümünü kapat', onclick: () => kontrol('tumunuKapat') }),
+    el('label', {}, el('input', { type: 'checkbox', checked: oncekiniKapat, onchange: (e) => { oncekiniKapat = e.target.checked; } }), 'İlerlerken önceki soruyu kapat'),
+    el('div', { class: 'sayi' }, el('span', { class: 'etiket aktif', id: 'katSayi', text: (canli ? canli.participantCount : 0) + ' katılımcı' })));
+  const liste = el('div', { id: 'soruListesi' });
+  const durumAd = { beklemede: 'Beklemede', acik: 'Yanıta açık', kapali: 'Kapalı' };
+  const tipAd = { tek: 'Tek seçim', coklu: 'Çoklu seçim', acik: 'Açık uçlu', olcek: 'Ölçek' };
+  qs.forEach((q, i) => {
+    const sonuc = canli && canli.results.find((r) => r.qid === q.id);
+    liste.append(el('div', { class: 'soru-satir' + (onizlenen === q.id ? ' on' : '') + (ev.currentQuestionId === q.id && ev.screen === 'soru' ? ' ekranda' : ''), onclick: () => { onizlenen = q.id; canliCiz(kap); } },
+      el('div', { class: 'no', text: i + 1 }),
+      el('div', {},
+        el('div', { class: 'metin', text: q.text }),
+        el('div', { class: 'meta' },
+          el('span', { class: 'etiket ' + (q.state === 'acik' ? 'acik' : q.state === 'kapali' ? 'kapali' : ''), text: durumAd[q.state] }),
+          el('span', { text: tipAd[q.type] }),
+          el('span', { 'data-yanit': q.id, text: '· ' + (sonuc ? sonuc.respondents : 0) + ' yanıt' }),
+          ev.currentQuestionId === q.id && ev.screen === 'soru' ? el('span', { class: 'etiket aktif', text: 'EKRANDA' }) : null,
+          q.showResults === false ? el('span', { class: 'etiket taslak', text: 'Sonuç gizli' }) : null),
+        el('div', { class: 'dugmeler', onclick: (e) => e.stopPropagation() },
+          el('button', { class: 'btn kucuk ana', text: '▶ Aç ve yansıt', onclick: () => kontrol('yansit-ac', { qid: q.id }) }),
+          q.state === 'acik' ? el('button', { class: 'btn kucuk', text: '■ Yanıtları kapat', onclick: () => kontrol('kapat', { qid: q.id }) })
+            : el('button', { class: 'btn kucuk', text: '● Yanıta aç', onclick: () => kontrol('ac', { qid: q.id }) }),
+          el('button', { class: 'btn kucuk', text: '⧉ Yalnız yansıt', onclick: () => kontrol('yansit', { qid: q.id }) }),
+          el('button', { class: 'btn kucuk', text: q.showResults === false ? '👁 Sonucu göster' : '🙈 Sonucu gizle', onclick: () => kontrol('sonuc', { qid: q.id, deger: q.showResults === false }) })))));
+  });
+  if (!qs.length) liste.append(el('div', { class: 'kart', text: 'Bu etkinlikte henüz soru yok. "Sorular" sekmesinden ekleyin.' }));
+  const onizleme = el('div', { class: 'kart onizleme', id: 'onizleme' });
+  kap.append(kontrolCubuk, el('div', { class: 'canli-izgara' }, liste, onizleme));
+  onizlemeCiz();
+}
+
+function onizlemeCiz() {
+  const kap = document.getElementById('onizleme'); if (!kap) return;
+  const q = ev.questions.find((x) => x.id === onizlenen);
+  if (!q) { kap.replaceChildren(el('div', { class: 'bos-sonuc', style: { height: '200px' }, text: 'Önizlemek için bir soru seçin' })); return; }
+  const sonuc = canli && canli.results.find((r) => r.qid === q.id);
+  if (!kap.querySelector('.kutu') || kap.dataset.q !== q.id) {
+    kap.dataset.q = q.id;
+    kap.replaceChildren(el('h3', { text: q.text }), el('div', { class: 'alt-satir', style: { color: 'var(--soluk)' }, id: 'onzMeta' }), el('div', { class: 'kutu', id: 'onzKutu' }), el('div', { class: 'moderasyon', id: 'onzMod' }));
+  }
+  document.getElementById('onzMeta').textContent = `${sonuc ? sonuc.respondents : 0} yanıt · ${canli ? canli.participantCount : 0} katılımcı`;
+  const kutu = document.getElementById('onzKutu');
+  if (sonuc) sonucCiz(kutu, q, q.type === 'acik' ? { ...sonuc, items: sonuc.items.filter((x) => !x.hidden) } : sonuc, { kisiler: true, enFazla: 12 });
+  const mod = document.getElementById('onzMod');
+  if (q.type === 'acik' && sonuc) {
+    mod.replaceChildren(el('div', { style: { fontWeight: 700, margin: '6px 0' }, text: `Moderasyon — ekranda görünmesini istemediğiniz yanıtları gizleyin (${sonuc.items.length})` }),
+      ...sonuc.items.map((o) => el('div', { class: 'mod-oge' + (o.hidden ? ' gizlendi' : '') },
+        el('div', {}, el('div', { class: 'yazi', text: o.text }), el('div', { class: 'kim', text: [o.name, o.kurum, new Date(o.ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })].filter(Boolean).join(' · ') })),
+        el('button', { class: 'btn kucuk' + (o.hidden ? '' : ' tehlike'), text: o.hidden ? 'Göster' : 'Gizle', onclick: () => kontrol(o.hidden ? 'goster' : 'gizle', { yanitId: o.id }) }))));
+  } else mod.replaceChildren();
+}
+
+function canliGuncelle() {
+  const s = document.getElementById('katSayi'); if (!s) return;
+  s.textContent = canli.participantCount + ' katılımcı';
+  for (const r of canli.results) { const n = document.querySelector(`[data-yanit="${r.qid}"]`); if (n) n.textContent = '· ' + r.respondents + ' yanıt'; }
+  onizlemeCiz();
+}
+
+/* ---------------- Soru düzenleyici ---------------- */
+let duzen = null;   // düzenlenen kopya
+function sorularCiz(kap) {
+  duzen = JSON.parse(JSON.stringify(ev.questions));
+  const liste = el('div');
+  const tipAd = { tek: 'Çoktan seçmeli — tek seçim', coklu: 'Çoktan seçmeli — çoklu seçim', acik: 'Açık uçlu (klasik)', olcek: 'Ölçek / derecelendirme' };
+  const yeniden = () => {
+    liste.replaceChildren(...duzen.map((q, i) => {
+      const alan = (ad, el2) => el('label', { class: 'f' }, el('span', { text: ad }), el2);
+      const bagla = (k, donustur = (v) => v) => (e) => { q[k] = donustur(e.target.value); };
+      const ozel = el('div');
+      if (q.type === 'tek' || q.type === 'coklu') {
+        q.options = q.options || ['', ''];
+        ozel.append(el('div', { class: 'izgara2' },
+          alan('Seçenekler (her satıra bir seçenek, en fazla 12)', el('textarea', { rows: Math.max(4, q.options.length + 1), oninput: (e) => { q.options = e.target.value.split('\n'); } }, q.options.join('\n'))),
+          el('div', {},
+            q.type === 'coklu' ? alan('En fazla kaç seçenek işaretlenebilir? (0 = sınırsız)', el('input', { type: 'number', min: 0, max: 12, value: q.maxSelect || 0, oninput: bagla('maxSelect', Number) })) : null,
+            alan('Ekranda gösterim', el('select', { onchange: bagla('display') }, el('option', { value: 'cubuk', text: 'Yatay çubuk grafik', selected: q.display !== 'halka' }), q.type === 'tek' ? el('option', { value: 'halka', text: 'Halka (pasta) grafik', selected: q.display === 'halka' }) : null)))));
+      } else if (q.type === 'olcek') {
+        ozel.append(el('div', { class: 'izgara4' },
+          alan('En düşük', el('select', { onchange: bagla('scaleMin', Number) }, ...[0, 1].map((v) => el('option', { value: v, text: v, selected: (q.scaleMin ?? 1) === v })))),
+          alan('En yüksek', el('select', { onchange: bagla('scaleMax', Number) }, ...[3, 4, 5, 7, 10].map((v) => el('option', { value: v, text: v, selected: (q.scaleMax ?? 5) === v })))),
+          alan('En düşük etiketi', el('input', { type: 'text', value: q.minLabel || '', placeholder: 'ör. Çok zayıf', oninput: bagla('minLabel') })),
+          alan('En yüksek etiketi', el('input', { type: 'text', value: q.maxLabel || '', placeholder: 'ör. Çok güçlü', oninput: bagla('maxLabel') }))));
+      } else {
+        ozel.append(el('div', { class: 'izgara2' },
+          alan('Ekranda gösterim', el('select', { onchange: bagla('display') }, el('option', { value: 'kartlar', text: 'Yanıt kartları (görüş duvarı)', selected: !['bulut', 'yaris'].includes(q.display) }), el('option', { value: 'bulut', text: 'Kelime bulutu', selected: q.display === 'bulut' }), el('option', { value: 'yaris', text: 'Canlı sıralama yarışı (öncelik puanlı; kutu sayısı > 0 olmalı)', selected: q.display === 'yaris' }))),
+          alan('En fazla karakter (kutu başına)', el('input', { type: 'number', min: 20, max: 1000, value: q.maxLength || 280, oninput: bagla('maxLength', Number) }))),
+          el('div', { style: { height: '10px' } }),
+          alan('Yanıt kutusu sayısı (0 = tek metin kutusu; ör. 5 = "5 anahtar kelime")', el('input', { type: 'number', min: 0, max: 10, value: q.kelimeSayisi || 0, oninput: bagla('kelimeSayisi', Number) })));
+      }
+      return el('div', { class: 'sd' },
+        el('div', { class: 'sd-ust' }, el('span', { class: 'no', text: 'Soru ' + (i + 1) }),
+          el('select', { style: { width: 'auto' }, onchange: (e) => { q.type = e.target.value; q.display = ''; yeniden(); } }, ...Object.entries(tipAd).map(([k, ad]) => el('option', { value: k, text: ad, selected: q.type === k }))),
+          el('span', { class: 'bosluk' }),
+          el('button', { class: 'btn kucuk', text: '↑', disabled: i === 0, onclick: () => { [duzen[i - 1], duzen[i]] = [duzen[i], duzen[i - 1]]; yeniden(); } }),
+          el('button', { class: 'btn kucuk', text: '↓', disabled: i === duzen.length - 1, onclick: () => { [duzen[i + 1], duzen[i]] = [duzen[i], duzen[i + 1]]; yeniden(); } }),
+          el('button', { class: 'btn kucuk tehlike', text: 'Sil', onclick: () => { if (confirm('Soru ve bu soruya verilmiş tüm yanıtlar silinsin mi? (Kaydet ile kesinleşir)')) { duzen.splice(i, 1); yeniden(); } } })),
+        alan('Soru metni', el('textarea', { rows: 2, oninput: bagla('text') }, q.text || '')),
+        el('div', { style: { height: '10px' } }),
+        alan('Açıklama / yönerge (isteğe bağlı)', el('input', { type: 'text', value: q.note || '', oninput: bagla('note') })),
+        el('div', { style: { height: '10px' } }), ozel);
+    }));
+  };
+  yeniden();
+  const ekle = (type) => { duzen.push({ type, text: '', options: type === 'tek' || type === 'coklu' ? ['', ''] : undefined, scaleMin: 1, scaleMax: 5, display: type === 'acik' ? 'kartlar' : '' }); yeniden(); liste.lastChild.scrollIntoView({ behavior: 'smooth' }); liste.lastChild.querySelector('textarea').focus(); };
+  kap.replaceChildren(liste,
+    el('div', { class: 'kontrol-cubuk' }, el('b', { text: 'Soru ekle:' }),
+      el('button', { class: 'btn', text: '+ Tek seçim', onclick: () => ekle('tek') }),
+      el('button', { class: 'btn', text: '+ Çoklu seçim', onclick: () => ekle('coklu') }),
+      el('button', { class: 'btn', text: '+ Açık uçlu', onclick: () => ekle('acik') }),
+      el('button', { class: 'btn', text: '+ Ölçek (1–5)', onclick: () => ekle('olcek') })),
+    el('div', { class: 'kaydet-cubuk' },
+      el('button', { class: 'btn ana', text: 'Soruları kaydet', onclick: async () => {
+        const temiz = duzen.map((q) => ({ ...q, options: q.options && q.options.map((o) => o.trim()).filter(Boolean) }));
+        const eksik = temiz.findIndex((q) => (q.type === 'tek' || q.type === 'coklu') && q.options.length < 2);
+        if (eksik >= 0) return bildir(`Soru ${eksik + 1}: en az iki seçenek girin`);
+        if (temiz.some((q) => !String(q.text || '').trim())) return bildir('Boş soru metni var');
+        await api('/etkinlik/' + ev.id, 'PUT', { questions: temiz });
+        ev = await api('/etkinlik/' + ev.id); listeYukle(); bildir('Sorular kaydedildi'); sorularCiz(kap);
+      } }),
+      el('button', { class: 'btn', text: 'Değişiklikleri geri al', onclick: () => sorularCiz(kap) }),
+      el('span', { style: { color: 'var(--soluk)', fontSize: '.88em' }, text: 'Not: Canlı toplantı sırasında seçenek sırasını değiştirmeyin; mevcut yanıtlar seçenek sırasına göre tutulur.' })));
+}
+
+/* ---------------- Etkinlik ayarları ---------------- */
+function ayarlarCiz(kap) {
+  const v = { title: ev.title, subtitle: ev.subtitle || '', date: ev.date || '', code: ev.code, fields: { ...ev.fields }, kvkk: ev.kvkk?.metin || '', kurum: (ev.kurumOnerileri || []).join('\n'), showNames: !!ev.showNamesOnScreen };
+  const alan = (ad, n) => el('label', { class: 'f' }, el('span', { text: ad }), n);
+  const metin = (k, ph = '') => el('input', { type: 'text', value: v[k], placeholder: ph, oninput: (e) => { v[k] = e.target.value; } });
+  const alanSec = (k, ad) => alan(ad, el('select', { onchange: (e) => { v.fields[k] = e.target.value; } }, ...[['zorunlu', 'Zorunlu'], ['istege', 'İsteğe bağlı'], ['kapali', 'Sorulmasın']].map(([d, a]) => el('option', { value: d, text: a, selected: v.fields[k] === d }))));
+  const url = katilimUrl();
+  kap.replaceChildren(
+    el('div', { class: 'kart', style: { marginBottom: '16px' } },
+      el('div', { class: 'baglantilar' },
+        el('div', { class: 'qr', html: '' }),
+        el('div', {},
+          el('div', {}, el('b', { text: 'Katılım bağlantısı: ' }), el('code', { text: url })),
+          el('div', { style: { marginTop: '8px' } }, el('b', { text: 'Yansıtma ekranı: ' }), el('code', { text: ekranUrl() })),
+          el('div', { style: { marginTop: '8px', color: 'var(--soluk)', fontSize: '.9em' } }, 'QR kodu davet yazısına, masa kartlarına veya sunumun ilk slaydına da ekleyebilirsiniz. ',
+            el('a', { href: '#', onclick: (e) => { e.preventDefault(); qrIndir(); }, text: 'QR kodu SVG olarak indir' }))))),
+    el('div', { class: 'kart' },
+      el('div', { class: 'izgara2' }, alan('Etkinlik adı', metin('title')), alan('Alt başlık', metin('subtitle', 'ör. Kurum İçi Lansman Toplantısı'))),
+      el('div', { style: { height: '12px' } }),
+      el('div', { class: 'izgara2' }, alan('Tarih', el('input', { type: 'text', value: v.date, placeholder: '2026-11-24', oninput: (e) => { v.date = e.target.value; } })), alan('Etkinlik kodu (QR adresinde görünür)', metin('code'))),
+      el('h3', { style: { margin: '22px 0 8px', color: 'var(--lacivert)' }, text: 'Katılımcıdan istenecek bilgiler' }),
+      el('div', { class: 'izgara4' }, alanSec('ad', 'Ad Soyad'), alanSec('kurum', 'Kurum / Kuruluş'), alanSec('birim', 'Birim / Daire Başkanlığı'), alanSec('unvan', 'Unvan / Görev')),
+      el('div', { style: { color: 'var(--soluk)', fontSize: '.88em', marginTop: '6px' }, text: 'Anonim bir oylama için dört alanı da "Sorulmasın" yapın.' }),
+      el('label', { style: { display: 'flex', gap: '8px', alignItems: 'center', marginTop: '14px' } }, el('input', { type: 'checkbox', checked: v.showNames, onchange: (e) => { v.showNames = e.target.checked; } }), 'Açık uçlu yanıtlar yansıtma ekranında ad-soyad ve kurum bilgisiyle gösterilsin'),
+      el('div', { style: { height: '16px' } }),
+      el('div', { class: 'izgara2' },
+        alan('Kurum önerileri (katılımcı yazarken listelenir; her satıra bir kurum)', el('textarea', { rows: 10, oninput: (e) => { v.kurum = e.target.value; } }, v.kurum)),
+        alan('KVKK aydınlatma metni (boş bırakılırsa onay kutusu çıkmaz)', el('textarea', { rows: 10, oninput: (e) => { v.kvkk = e.target.value; } }, v.kvkk))),
+      el('div', { class: 'kaydet-cubuk' },
+        el('button', { class: 'btn ana', text: 'Ayarları kaydet', onclick: async () => {
+          try {
+            await api('/etkinlik/' + ev.id, 'PUT', { title: v.title, subtitle: v.subtitle, date: v.date, code: v.code, fields: v.fields, kvkkHam: v.kvkk, kurumOnerileri: v.kurum.split('\n'), showNamesOnScreen: v.showNames });
+            ev = await api('/etkinlik/' + ev.id); listeYukle(); bildir('Ayarlar kaydedildi'); ciz();
+          } catch (e) { bildir(e.message); }
+        } }),
+        el('button', { class: 'btn', text: '⧉ Bu etkinliği sorularıyla kopyala', title: 'Ör. Ekoloji Çalıştayı 2, 3… için aynı soru setini kullanın', onclick: async () => {
+          const ad = prompt('Kopyanın adı:', ev.title + ' (2)'); if (!ad) return;
+          const r = await api('/etkinlikler', 'POST', { kopyala: ev.id, title: ad, code: ev.code.slice(0, 12) + '2' });
+          await listeYukle(); etkinlikAc(r.id); bildir('Kopya oluşturuldu (Taslak durumda)');
+        } }),
+        el('span', { class: 'bosluk', style: { flex: 1 } }),
+        el('button', { class: 'btn tehlike', text: 'Etkinliği sil', onclick: async () => {
+          if (prompt(`Bu etkinlik ve tüm yanıtları kalıcı olarak silinecek. Onaylamak için etkinlik kodunu (${ev.code}) yazın:`) !== ev.code) return;
+          await api('/etkinlik/' + ev.id, 'DELETE'); ev = null; localStorage.removeItem('sonEtkinlik'); await listeYukle(); ana.replaceChildren(el('div', { text: 'Etkinlik silindi.' }));
+        } }))));
+  kap.querySelector('.qr').innerHTML = qrSvg(url);
+}
+
+function qrIndir() {
+  const a = el('a', { href: URL.createObjectURL(new Blob([qrSvg(katilimUrl())], { type: 'image/svg+xml' })), download: ev.code + '-katilim-qr.svg' });
+  document.body.append(a); a.click(); a.remove();
+}
+
+/* ---------------- Katılımcılar ve veri ---------------- */
+async function veriCiz(kap) {
+  ev = await api('/etkinlik/' + ev.id);
+  const k = ev.katilimcilar.sort((a, b) => a.ts - b.ts);
+  const indir = (tur) => fetch('/api/yonetim/etkinlik/' + ev.id + '/disa-aktar.' + tur, { headers: { 'x-yonetim-anahtari': ANAHTAR } }).then((r) => r.blob()).then((b) => {
+    const a = el('a', { href: URL.createObjectURL(b), download: `${ev.code}-${new Date().toISOString().slice(0, 10)}-${tur === 'csv' ? 'yanitlar.csv' : 'yedek.json'}` }); document.body.append(a); a.click(); a.remove();
+  });
+  const kurumSay = {}; k.forEach((x) => { const n = x.kurum || '(belirtilmemiş)'; kurumSay[n] = (kurumSay[n] || 0) + 1; });
+  kap.replaceChildren(
+    el('div', { class: 'kontrol-cubuk' },
+      el('button', { class: 'btn ana', text: '⬇ Yanıtları Excel (CSV) olarak indir', onclick: () => indir('csv') }),
+      el('button', { class: 'btn', text: '⬇ Tam yedek (JSON)', onclick: () => indir('json') }),
+      el('span', { class: 'bosluk', style: { flex: 1 } }),
+      el('button', { class: 'btn tehlike', text: 'Tüm yanıtları ve katılımcıları sıfırla', onclick: async () => {
+        if (prompt(`Prova sonrası temizlik içindir. Tüm katılımcı ve yanıtlar silinecek. Onay için "${ev.code}" yazın:`) !== ev.code) return;
+        await api('/etkinlik/' + ev.id + '/kontrol', 'POST', { islem: 'sifirla' }); bildir('Etkinlik sıfırlandı'); veriCiz(kap); listeYukle();
+      } })),
+    el('div', { class: 'canli-izgara' },
+      el('div', { class: 'kart' }, el('h3', { style: { marginTop: 0, color: 'var(--lacivert)' }, text: `Katılımcılar (${k.length})` }),
+        el('table', {}, el('thead', {}, el('tr', {}, ...['#', 'Ad Soyad', 'Kurum', 'Birim', 'Unvan', 'Saat'].map((h) => el('th', { text: h })))),
+          el('tbody', {}, ...k.map((x, i) => el('tr', {}, ...[i + 1, x.ad, x.kurum, x.birim, x.unvan, new Date(x.ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })].map((c) => el('td', { text: c ?? '' }))))))),
+      el('div', { class: 'kart' }, el('h3', { style: { marginTop: 0, color: 'var(--lacivert)' }, text: 'Kurumlara göre katılım' }),
+        el('table', {}, el('tbody', {}, ...Object.entries(kurumSay).sort((a, b) => b[1] - a[1]).map(([n, c]) => el('tr', {}, el('td', { text: n }), el('td', { style: { textAlign: 'right', fontWeight: 700 }, text: c }))))))));
+}
+</script>
+</body>
+</html>

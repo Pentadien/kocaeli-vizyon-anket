@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kocaeli 2053 Vizyon · Yansıtma Ekranı</title>
+<link rel="stylesheet" href="/ortak.css">
+<link rel="icon" href="/favicon.svg">
+<style>
+  /* ===== KOCAELİ 2053 VİZYON — yansıtma teması ===== */
+  @property --aci { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+  :root { --altin: #d4af37; --altin-acik: #f7e4a3; --altin-koyu: #9c7a22; }
+  html, body { height: 100%; overflow: hidden; }
+  body { display: grid; grid-template-rows: auto 1fr auto; font-size: clamp(14px, 1.55vmin + .55vw, 30px); padding: 18px 22px 14px; position: relative; }
+
+  /* Koyu "vizyon" tema (varsayılan) */
+  body.koyu { --c2: #7cc3f0; --c12: #9fb0bf; --zemin: #071a2b; --metin: #eef4f8; --soluk: #9fb3c4; --kart: rgba(255,255,255,.045);
+    background: radial-gradient(1200px 700px at 12% 0%, rgba(39,169,189,.16), transparent 60%),
+                radial-gradient(1000px 700px at 100% 100%, rgba(212,175,55,.10), transparent 60%),
+                linear-gradient(160deg, #06192a 0%, #082740 55%, #061626 100%); color: var(--metin); }
+  body.koyu .cubuk-iz { background: rgba(255,255,255,.07); }
+  body.koyu .halka-orta b, body.koyu .ortalama b { color: #fff; }
+  body.koyu .kart-yanit { background: rgba(255,255,255,.055); border-left-color: var(--altin); box-shadow: 0 1px 0 rgba(212,175,55,.12) inset, 0 8px 24px rgba(0,0,0,.25); }
+  body.koyu .halka-zemin { stroke: rgba(255,255,255,.08); }
+  /* Açık tema (T ile) */
+  body:not(.koyu) { background: linear-gradient(160deg, #f7f9fb, #eef3f7); }
+  body:not(.koyu) .kart-yanit { border-left-color: var(--altin-koyu); }
+
+  /* Akan altın çerçeve */
+  .altin-cerceve { position: fixed; inset: 7px; border-radius: 22px; padding: 2px; pointer-events: none; z-index: 15;
+    background: conic-gradient(from var(--aci), rgba(212,175,55,.18) 0deg, rgba(212,175,55,.18) 110deg, var(--altin-koyu) 140deg, var(--altin-acik) 160deg, var(--altin) 172deg, rgba(212,175,55,.18) 200deg,
+      rgba(212,175,55,.18) 290deg, var(--altin-koyu) 320deg, var(--altin-acik) 340deg, var(--altin) 352deg, rgba(212,175,55,.18) 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+    filter: drop-shadow(0 0 5px rgba(247,228,163,.55)); }
+  @keyframes aciDon { to { --aci: 360deg; } }
+
+  /* Üst bant */
+  .ust { display: flex; align-items: center; gap: 1.1em; padding: .6vh 1.4vw 1.4vh; position: relative; }
+  .ust::after { content: ""; position: absolute; left: 1.4vw; right: 1.4vw; bottom: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,.35) 15%, var(--altin-acik) 50%, rgba(212,175,55,.35) 85%, transparent);
+    background-size: 200% 100%; animation: cizgiAk 6s linear infinite; }
+  @keyframes cizgiAk { from { background-position: 200% 0; } to { background-position: 0 0; } }
+  .marka-blok { line-height: 1.05; }
+  .marka-ust { font-size: .5em; letter-spacing: .32em; font-weight: 700; color: var(--altin); }
+  .marka-ana { font-size: 1.35em; font-weight: 800; letter-spacing: .06em; white-space: nowrap; }
+  body:not(.koyu) .marka-ana { color: var(--lacivert); }
+  .altin-yazi { background: linear-gradient(100deg, var(--altin-koyu) 0%, var(--altin) 25%, var(--altin-acik) 45%, var(--altin) 60%, var(--altin-koyu) 100%);
+    background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: altinParla 5s ease-in-out infinite; }
+  @keyframes altinParla { 0%, 100% { background-position: 100% 0; } 50% { background-position: 0 0; } }
+  .ayrac { width: 1px; align-self: stretch; margin: .2em .2em; background: linear-gradient(transparent, var(--altin), transparent); opacity: .7; }
+  .ust .ad { font-weight: 600; font-size: .8em; color: var(--soluk); max-width: 38vw; }
+  .ust .ad b { display: block; color: var(--metin); font-size: 1.12em; font-weight: 700; }
+  .ust .bosluk { flex: 1; }
+  .ust .katil { display: flex; align-items: center; gap: .7em; font-size: .72em; color: var(--soluk); text-align: right; }
+  .ust .katil b { color: var(--metin); font-size: 1.1em; }
+  .ust .mini-qr { width: 3.4em; height: 3.4em; background: #fff; border-radius: 8px; padding: 3px; box-shadow: 0 0 0 1px rgba(212,175,55,.6), 0 0 14px rgba(212,175,55,.25); }
+  .ust .mini-qr svg { width: 100%; height: 100%; display: block; }
+  .sayac-rozet { display: flex; align-items: center; gap: .45em; padding: .35em .9em; border-radius: 999px; font-weight: 700; font-size: .85em;
+    border: 1px solid rgba(212,175,55,.45); background: rgba(212,175,55,.08); transition: transform .25s, box-shadow .25s; }
+  .sayac-rozet i { width: .55em; height: .55em; border-radius: 50%; background: #5fe39a; box-shadow: 0 0 8px #5fe39a; animation: nabiz 1.6s infinite; }
+  .sayac-rozet.zipla { transform: scale(1.12); box-shadow: 0 0 18px rgba(247,228,163,.6); }
+
+  .sahne { position: relative; min-height: 0; padding: 3vh 2.4vw 1.4vh; view-transition-name: sahne; }
+  ::view-transition-old(sahne) { animation: sahneCik .35s ease both; }
+  ::view-transition-new(sahne) { animation: sahneGir .6s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes sahneCik { to { opacity: 0; transform: translateY(-12px) scale(.985); filter: blur(4px); } }
+  @keyframes sahneGir { from { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(6px); } }
+
+  /* Lobi */
+  .lobi { display: grid; grid-template-columns: auto 1fr; gap: 5vw; align-items: center; height: 100%; }
+  .qr-cerceve { position: relative; padding: 4px; border-radius: calc(3vmin + 4px);
+    background: conic-gradient(from var(--aci), var(--altin-koyu), var(--altin-acik), var(--altin), var(--altin-koyu), var(--altin-acik), var(--altin-koyu));
+    box-shadow: 0 0 40px rgba(212,175,55,.25); }
+  .lobi .buyuk-qr { height: min(62vh, 40vw); aspect-ratio: 1; background: #fff; border-radius: 3vmin; padding: 1.6vmin; }
+  .lobi .buyuk-qr svg { width: 100%; height: 100%; display: block; }
+  .lobi .baslik-ust { font-size: .9em; letter-spacing: .3em; font-weight: 700; color: var(--altin); }
+  .lobi h1 { font-size: 3.2em; line-height: 1.02; margin: .1em 0 .15em; letter-spacing: .02em; font-weight: 800; }
+  body:not(.koyu) .lobi h1 { color: var(--lacivert); }
+  .lobi .alt { font-size: 1.2em; color: var(--metin); margin-bottom: 1.4em; font-weight: 600; }
+  .lobi .alt small { display: block; color: var(--soluk); font-weight: 500; font-size: .8em; margin-top: .15em; }
+  .adim { display: flex; gap: .8em; align-items: baseline; font-size: 1.05em; margin: .45em 0; animation: satirGiris .6s both; }
+  .adim:nth-child(2) { animation-delay: .1s; } .adim:nth-child(3) { animation-delay: .2s; }
+  .adim b { display: inline-flex; width: 1.7em; height: 1.7em; border-radius: 50%; align-items: center; justify-content: center; border: 1.5px solid var(--altin); color: var(--altin); font-size: .8em; flex: none; }
+  .adres { display: inline-block; margin-top: 1.1em; font-size: 1.3em; font-weight: 800; padding: .35em .9em; border-radius: 12px; border: 1.5px solid rgba(212,175,55,.6); background: rgba(212,175,55,.07); }
+  body:not(.koyu) .adres { color: var(--lacivert); }
+  .lobi .kalabalik { margin-top: 1.3em; font-size: 1.1em; color: var(--soluk); }
+  .lobi .kalabalik b { font-size: 2.2em; vertical-align: middle; margin-right: .2em; }
+
+  /* Soru */
+  .soru-gor { display: grid; grid-template-rows: auto 1fr; height: 100%; gap: 3vh; }
+  .soru-bas .sira { font-weight: 800; color: var(--altin); letter-spacing: .16em; font-size: .72em; }
+  .soru-bas h2 { margin: .2em 0 0; font-size: 2em; line-height: 1.18; max-width: 92%; animation: baslikGir .7s cubic-bezier(.2,.8,.2,1) both; }
+  body:not(.koyu) .soru-bas h2 { color: var(--lacivert); }
+  @keyframes baslikGir { from { opacity: 0; transform: translateY(10px); letter-spacing: .02em; } }
+  .soru-bas .not { color: var(--soluk); margin-top: .3em; }
+  #sonuc { min-height: 0; --cubuk-yazi: 1em; --halka-sayi: 2.4em; --ortalama: 4em; --kart-yazi: .95em; }
+  .gizli-sonuc { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: var(--soluk); }
+  .gizli-sonuc b { font-size: 5em; line-height: 1; color: var(--altin); animation: nabiz 2s infinite; }
+
+  .alt-cubuk { display: flex; justify-content: space-between; align-items: center; padding: 1.2vh 2.4vw .4vh; color: var(--soluk); font-size: .8em; position: relative; }
+  .alt-cubuk::before { content: ""; position: absolute; left: 1.4vw; right: 1.4vw; top: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,.3), transparent); }
+  .alt-cubuk .yanit-sayisi b { color: var(--metin); font-size: 1.25em; }
+  .alt-cubuk .acik-yazi { color: #5fe39a; font-weight: 700; }
+  .durum-kapali { color: #ff8a80; font-weight: 700; }
+
+  /* Tüm sorular (dashboard) */
+  .izgara-tumu { display: grid; gap: 1.8vh 1.4vw; height: 100%; }
+  .tk { background: var(--kart); border-radius: 16px; padding: 1.6vh 1.2vw; display: grid; grid-template-rows: auto 1fr auto; min-height: 0; min-width: 0; overflow: hidden; position: relative;
+    border: 1px solid rgba(212,175,55,.18); box-shadow: 0 10px 30px rgba(0,0,0,.18); animation: kartGir .7s cubic-bezier(.2,.8,.2,1) both; }
+  body:not(.koyu) .tk { background: #fff; }
+  .tk::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--altin-acik), transparent); background-size: 200% 100%; animation: cizgiAk 5s linear infinite; opacity: .8; }
+  @keyframes kartGir { from { opacity: 0; transform: translateY(16px) scale(.97); } }
+  .tk-bas { font-size: .6em; font-weight: 800; color: var(--altin); letter-spacing: .14em; }
+  .tk h3 { margin: .15em 0 .5em; font-size: .82em; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  body:not(.koyu) .tk h3 { color: var(--lacivert); }
+  .tk-sonuc { min-height: 0; --cubuk-yazi: .56em; --cubuk-yuk: 1.05em; --cubuk-aralik: .3em; --halka-sayi: 1.3em; --ortalama: 2em; --kart-sutun: 1; --kart-yazi: .55em; --bulut-taban: .5; overflow: hidden; position: relative; }
+  .tk-sonuc .cubuklar { justify-content: space-evenly; gap: 0; }
+  .tk-sonuc .cubuk-satir { grid-template-columns: minmax(80px, 40%) 1fr; gap: 8px; }
+  .tk-sonuc .cubuk-ad { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tk-sonuc .lejant-oge span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tk-sonuc .halka-sar { grid-template-columns: auto minmax(0, 1fr); gap: 4%; }
+  .tk-sonuc .lejant { gap: 4px; font-size: .9em; } .tk-sonuc .lejant-oge { grid-template-columns: 10px 1fr auto; gap: 6px; } .tk-sonuc .lejant-oge i { width: 10px; height: 10px; }
+  .tk-sonuc .kart-yanit { padding: 6px 8px; margin-bottom: 6px; border-left-width: 3px; }
+  .tk-sonuc .olcek-uclar, .tk-sonuc .ortalama span { font-size: .55em; }
+  .tk-sonuc .olcek-uclar { margin: 0; }
+  .tk-alt { font-size: .55em; color: var(--soluk); margin-top: .4em; display: flex; justify-content: space-between; }
+  .tk-alt .acik { color: #5fe39a; font-weight: 700; }
+  .giris-notu { margin-top: .8em; font-size: .85em; color: var(--soluk); max-width: 30em; }
+  .giris-notu b { color: var(--altin); }
+
+  .qr-katman { position: fixed; inset: 0; background: rgba(4,18,30,.92); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 3vh; z-index: 20; color: #fff; }
+  .qr-katman .kutu { background: #fff; padding: 2vmin; border-radius: 3vmin; height: 70vh; aspect-ratio: 1; box-shadow: 0 0 0 4px var(--altin), 0 0 60px rgba(212,175,55,.35); }
+  .qr-katman .kutu svg { width: 100%; height: 100%; }
+  .qr-katman div:last-child { font-size: 1.4em; font-weight: 800; }
+
+  .kontrol { position: fixed; right: 22px; bottom: 20px; display: flex; gap: 8px; opacity: 0; transition: opacity .3s; z-index: 30; }
+  body.fare .kontrol { opacity: 1; }
+  .kontrol .btn { font-size: 13px; }
+  .uyari { position: fixed; left: 50%; top: 84px; transform: translateX(-50%); background: #fff3df; color: #7a4a00; padding: 8px 14px; border-radius: 10px; font-size: 13px; z-index: 40; box-shadow: var(--golge); max-width: 90vw; }
+  .baglanti { position: fixed; left: 22px; bottom: 20px; font-size: 12px; background: var(--hata); color: #fff; padding: 4px 10px; border-radius: 999px; z-index: 40; animation: nabiz 1s infinite; }
+  body.hareketsiz *, body.hareketsiz ::before, body.hareketsiz ::after { animation: none !important; transition: none !important; }
+</style>
+</head>
+<body class="koyu">
+<div class="altin-cerceve" aria-hidden="true"></div>
+<div class="ust">
+  <div class="marka-blok"><div class="marka-ust">KOCAELİ BÜYÜKŞEHİR BELEDİYESİ</div><div class="marka-ana">KOCAELİ <span class="altin-yazi">2053</span> VİZYON</div></div>
+  <div class="ayrac"></div>
+  <div class="ad" id="ustAd"></div>
+  <div class="bosluk"></div>
+  <div class="katil gizli" id="ustKatil"><div>Katılmak için<br><b id="ustAdres"></b></div><div class="mini-qr" id="miniQr"></div></div>
+  <div class="sayac-rozet" id="rozet"><i></i><span id="ustSayi">0</span>&nbsp;katılımcı</div>
+</div>
+<div class="sahne" id="sahne"></div>
+<div class="alt-cubuk" id="altCubuk"></div>
+<div class="qr-katman gizli" id="qrKatman"><div class="kutu" id="qrBuyuk"></div><div id="qrAdres"></div></div>
+<div class="kontrol"><button class="btn kucuk" id="bQr">QR (Q)</button><button class="btn kucuk" id="bTema">Tema (T)</button><button class="btn kucuk" id="bTam">Tam ekran (F)</button></div>
+<div class="baglanti gizli" id="baglanti">Bağlantı yeniden kuruluyor…</div>
+
+<script src="/vendor/qrcode.js"></script>
+<script src="/ortak.js"></script>
+<script>
+'use strict';
+const KOD = decodeURIComponent(location.pathname.split('/')[2] || '').toLocaleUpperCase('tr-TR');
+let s = null, sonQrUrl = '', sonEkran = '';
+const sahne = document.getElementById('sahne');
+
+{ const t = new URLSearchParams(location.search).get('tema') || localStorage.getItem('ekranTema'); if (t === 'acik') document.body.classList.remove('koyu'); }
+
+function katilUrl() {
+  const taban = (s && s.publicUrl) || location.origin;
+  return taban.replace(/\/+$/, '') + '/k/' + encodeURIComponent(s.code);
+}
+const gosterAdres = (u) => u.replace(/^https?:\/\//, '');
+
+function ciz() {
+  document.getElementById('ustAd').replaceChildren(el('b', { text: s.title || '' }), s.subtitle || '');
+  const oncekiSayi = document.getElementById('ustSayi')._d;
+  sayac(document.getElementById('ustSayi'), s.participantCount);
+  if (oncekiSayi != null && s.participantCount > oncekiSayi) { const r = document.getElementById('rozet'); r.classList.add('zipla'); setTimeout(() => r.classList.remove('zipla'), 450); }
+  document.title = s.title + ' · Ekran';
+  const url = katilUrl();
+  if (url !== sonQrUrl) {
+    sonQrUrl = url;
+    const svg = qrSvg(url);
+    document.getElementById('miniQr').innerHTML = svg;
+    document.getElementById('qrBuyuk').innerHTML = svg;
+    document.getElementById('ustAdres').textContent = gosterAdres(url);
+    document.getElementById('qrAdres').textContent = gosterAdres(url);
+    const yerel = /localhost|127\.0\.0\.1/.test(url);
+    let u = document.getElementById('uyari');
+    if (yerel && !u) document.body.append(el('div', { class: 'uyari', id: 'uyari', text: '⚠ QR kod "localhost" adresini gösteriyor; telefonlar bu adrese ulaşamaz. Yönetim panelinden "Katılım adresi"ni ayarlayın.' }));
+    if (!yerel && u) u.remove();
+  }
+
+  const tumu = s.screen === 'tumu' && s.tumu && s.tumu.length;
+  const lobi = !tumu && (s.screen !== 'soru' || !s.question);
+  document.getElementById('ustKatil').classList.toggle('gizli', lobi);
+  const anahtar = tumu ? 'tumu:' + s.tumu.map((x) => x.question.id).join(',') : lobi ? 'lobi' : 'soru:' + s.question.id;
+  const yap = () => { if (tumu) tumuCiz(); else if (lobi) lobiCiz(); else soruCiz(); };
+  if (anahtar !== sonEkran) {
+    sonEkran = anahtar;
+    const degistir = () => { sahne.replaceChildren(); yap(); };
+    if (document.startViewTransition && sahne.firstChild) document.startViewTransition(degistir);
+    else degistir();
+    return;
+  }
+  yap();
+}
+
+function lobiCiz() {
+  if (!sahne.firstChild) {
+    sahne.append(el('div', { class: 'lobi' },
+      el('div', { class: 'qr-cerceve' }, el('div', { class: 'buyuk-qr', id: 'lobiQr' })),
+      el('div', {},
+        el('div', { class: 'baslik-ust', text: 'KOCAELİ BÜYÜKŞEHİR BELEDİYESİ' }),
+        el('h1', {}, 'KOCAELİ ', el('span', { class: 'altin-yazi', text: '2053' }), el('br'), 'VİZYON'),
+        el('div', { class: 'alt', id: 'lobiAlt' }),
+        el('div', { class: 'adim' }, el('b', { text: '1' }), el('span', { text: 'Telefonunuzun kamerasıyla QR kodu okutun' })),
+        el('div', { class: 'adim' }, el('b', { text: '2' }), el('span', { text: 'Adınızı ve kurumunuzu girin' })),
+        el('div', { class: 'adim' }, el('b', { text: '3' }), el('span', { text: 'Sorular açıldıkça yanıtlayın; sonuçlar bu ekranda canlı görünsün' })),
+        el('div', { class: 'adres', id: 'lobiAdres' }),
+        el('div', { class: 'giris-notu', id: 'lobiNot' }),
+        el('div', { class: 'kalabalik' }, el('b', { id: 'lobiSayi', class: 'altin-yazi' }), el('span', { text: 'kişi katıldı' })))));
+    document.getElementById('altCubuk').replaceChildren();
+  }
+  const lq = document.getElementById('lobiQr'); if (lq.dataset.u !== katilUrl()) { lq.dataset.u = katilUrl(); lq.innerHTML = qrSvg(katilUrl()); }
+  document.getElementById('lobiAlt').replaceChildren(s.title || '', el('small', { text: s.subtitle || '' }));
+  document.getElementById('lobiAdres').textContent = gosterAdres(katilUrl());
+  sayac(document.getElementById('lobiSayi'), s.participantCount);
+  const not = document.getElementById('lobiNot');
+  not.replaceChildren(...(s.tunelUyari ? ['Açılan ilk sayfada ', el('b', { text: '"Enter site"' }), ' düğmesine dokunun (bir kez gösterilir).'] : []));
+}
+
+function tumuCiz() {
+  const n = s.tumu.length;
+  const sutun = n <= 1 ? 1 : n <= 4 ? 2 : n <= 6 ? 3 : n <= 9 ? 3 : 4;
+  const satir = Math.ceil(n / sutun);
+  if (!sahne.firstChild) {
+    const iz = el('div', { class: 'izgara-tumu', style: { gridTemplateColumns: `repeat(${sutun}, minmax(0,1fr))`, gridTemplateRows: `repeat(${satir}, minmax(0,1fr))` } });
+    s.tumu.forEach((x, i) => iz.append(el('div', { class: 'tk', 'data-q': x.question.id, style: { animationDelay: (i * 90) + 'ms' } },
+      el('div', {}, el('div', { class: 'tk-bas', text: 'SORU ' + (i + 1) }), el('h3', { text: x.question.text })),
+      el('div', { class: 'tk-sonuc' }), el('div', { class: 'tk-alt' }))));
+    sahne.append(iz);
+  }
+  const yanitToplam = s.tumu.reduce((a, x) => a + x.results.respondents, 0);
+  s.tumu.forEach((x) => {
+    const kart = sahne.querySelector(`.tk[data-q="${x.question.id}"]`); if (!kart) return;
+    const kap = kart.querySelector('.tk-sonuc');
+    if (!x.question.showResults) { kap.dataset.anahtar = ''; kap.replaceChildren(el('div', { class: 'gizli-sonuc' }, el('b', { style: { fontSize: '2.2em' }, text: fmtSayi(x.results.respondents) }), el('div', { style: { fontSize: '.6em' }, text: 'yanıt · sonuç gizli' }))); }
+    else {
+      if (kap.querySelector('.gizli-sonuc')) kap.replaceChildren();
+      const k = (x.question.options || []).length;
+      kap.style.setProperty('--cubuk-yuk', k > 7 ? '.8em' : k > 5 ? '.95em' : '1.1em');
+      kap.style.setProperty('--cubuk-yazi', k > 7 ? '.5em' : '.56em');
+      sonucCiz(kap, x.question, x.results, { enFazla: 4, enUzun: 66, yarisAdet: 5 });
+    }
+    kart.querySelector('.tk-alt').replaceChildren(el('span', { text: fmtSayi(x.results.respondents) + ' yanıt' }),
+      x.question.state === 'acik' ? el('span', { class: 'acik', text: '● açık' }) : el('span', { text: x.question.state === 'kapali' ? 'kapandı' : 'beklemede' }));
+  });
+  document.getElementById('altCubuk').replaceChildren(
+    el('div', { class: 'yanit-sayisi' }, el('b', { text: fmtSayi(s.participantCount) }), ' katılımcı · ', el('b', { text: fmtSayi(yanitToplam) }), ' yanıt'),
+    el('div', { text: 'TÜM SORULAR' }), el('div', { text: gosterAdres(katilUrl()) }));
+}
+
+function soruCiz() {
+  const q = s.question;
+  if (!sahne.firstChild) {
+    sahne.append(el('div', { class: 'soru-gor' },
+      el('div', { class: 'soru-bas' }, el('div', { class: 'sira', id: 'sira' }), el('h2', { id: 'soruMetin' }), el('div', { class: 'not', id: 'soruNot' })),
+      el('div', { id: 'sonuc' })));
+  }
+  document.getElementById('sira').textContent = `SORU ${s.questionIndex} / ${s.questionTotal}` + ({ coklu: ' · ÇOKLU SEÇİM', acik: ' · AÇIK UÇLU', olcek: ' · DEĞERLENDİRME' }[q.type] || '');
+  document.getElementById('soruMetin').textContent = q.text;
+  document.getElementById('soruNot').textContent = q.note || '';
+  const kap = document.getElementById('sonuc');
+  // Seçenek sayısına göre yazı ve çubuk boyutu
+  const n = (q.options || []).length;
+  kap.style.setProperty('--cubuk-yuk', n > 7 ? '1.5em' : n > 5 ? '1.8em' : '2.2em');
+  kap.style.setProperty('--cubuk-aralik', n > 7 ? '.55em' : '.9em');
+  kap.style.setProperty('--cubuk-yazi', n > 7 ? '.85em' : '1em');
+  kap.style.setProperty('--kart-sutun', window.innerWidth > 1400 ? 4 : 3);
+  kap.style.setProperty('--bulut-taban', '1.5');
+
+  if (!q.showResults) {
+    kap.dataset.anahtar = '';
+    kap.replaceChildren(el('div', { class: 'gizli-sonuc' }, el('b', { text: fmtSayi(s.results.respondents) }), el('div', { text: 'kişi yanıtladı · sonuçlar birazdan' })));
+  } else {
+    if (kap.querySelector('.gizli-sonuc')) kap.replaceChildren();
+    sonucCiz(kap, q, s.results, { kisiler: s.showNames, enFazla: 24, yarisAdet: 8 });
+  }
+  const alt = document.getElementById('altCubuk');
+  alt.replaceChildren(
+    el('div', { class: 'yanit-sayisi' }, el('b', { text: fmtSayi(s.results.respondents) }), ` / ${fmtSayi(s.participantCount)} katılımcı yanıtladı`),
+    q.state === 'kapali' ? el('div', { class: 'durum-kapali', text: 'Yanıtlar kapandı' }) : q.state === 'acik' ? el('div', { class: 'acik-yazi', text: '● Yanıtlar açık' }) : el('div', { text: 'Soru henüz yanıta açılmadı' }),
+    el('div', { text: gosterAdres(katilUrl()) }));
+}
+
+canliBaglan({
+  sse: '/api/etkinlik/' + encodeURIComponent(KOD) + '/akis?rol=ekran', yoklama: '/api/etkinlik/' + encodeURIComponent(KOD) + '/durum?rol=ekran', olay: 'durum', aralik: 1000,
+  onVeri: (d) => { s = d; ciz(); },
+  onDurum: (b) => document.getElementById('baglanti').classList.toggle('gizli', b) });
+
+/* Klavye ve fare */
+const qrAcKapa = () => document.getElementById('qrKatman').classList.toggle('gizli');
+const tema = () => { document.body.classList.toggle('koyu'); localStorage.setItem('ekranTema', document.body.classList.contains('koyu') ? 'koyu' : 'acik'); };
+const tam = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+document.getElementById('bQr').onclick = qrAcKapa;
+document.getElementById('bTema').onclick = tema;
+document.getElementById('bTam').onclick = tam;
+document.getElementById('qrKatman').onclick = qrAcKapa;
+addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if (k === 'q') qrAcKapa(); if (k === 't') tema(); if (k === 'f') tam(); if (k === 'escape') document.getElementById('qrKatman').classList.add('gizli'); });
+let fareZ; addEventListener('mousemove', () => { document.body.classList.add('fare'); clearTimeout(fareZ); fareZ = setTimeout(() => document.body.classList.remove('fare'), 2500); });
+addEventListener('resize', () => { sonEkran = ''; s && ciz(); });
+
+/* Akan altın çizgi: açı her karede JS ile ilerletilir. Böylece tarayıcının ya da Windows'un
+   "animasyonları azalt" ayarından ve @property desteğinden bağımsız olarak döner. */
+if (new URLSearchParams(location.search).get('hareket') === 'az') document.body.classList.add('hareketsiz');
+(function altinDongu() {
+  const t0 = performance.now();
+  const kare = (t) => {
+    if (!document.body.classList.contains('hareketsiz')) {
+      const sn = (t - t0) / 1000;
+      const cerceve = document.querySelector('.altin-cerceve');
+      if (cerceve) cerceve.style.setProperty('--aci', ((sn * 40) % 360).toFixed(2) + 'deg');      // ~9 sn'de bir tur
+      document.querySelectorAll('.qr-cerceve').forEach((q) => q.style.setProperty('--aci', ((sn * 60) % 360).toFixed(2) + 'deg'));
+    }
+    requestAnimationFrame(kare);
+  };
+  requestAnimationFrame(kare);
+})();
+</script>
+</body>
+</html>

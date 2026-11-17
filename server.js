@@ -303,15 +303,35 @@ function rateLimited(req, max = 40, windowMs = 10000) {
 setInterval(() => { const now = Date.now(); for (const [k, v] of hits) if (now - v.t > 60000) hits.delete(k); }, 60000);
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.json': 'application/json' };
+/* Sayfa dosyalarını bul. GitHub'a web arayüzünden yüklemede "public" klasörü ana dizine
+   açılmış olabilir; bu yüzden public/ ve ana dizin birlikte aranır. Sunucu kodu ve veri asla verilmez. */
+const SUNULABILIR = new Set(['.html', '.css', '.js', '.svg', '.png', '.ico']);
+const GIZLI_DOSYA = new Set(['server.js', 'seed.js', 'package.json', 'render.yaml']);
+function dosyaBul(rel) {
+  const temiz = path.normalize(rel).replace(/^([/\\])+/, '');
+  if (temiz.startsWith('..') || temiz.startsWith('data')) return null;
+  if (!SUNULABILIR.has(path.extname(temiz).toLowerCase())) return null;
+  const ad = path.basename(temiz);
+  const adaylar = [path.join(PUBLIC_DIR, temiz), path.join(PUBLIC_DIR, ad)];
+  if (!GIZLI_DOSYA.has(ad)) adaylar.push(path.join(__dirname, temiz), path.join(__dirname, ad));
+  return adaylar.find((x) => (x.startsWith(PUBLIC_DIR) || x.startsWith(__dirname)) && fs.existsSync(x) && fs.statSync(x).isFile()) || null;
+}
 function serveFile(res, rel) {
-  const p = path.normalize(path.join(PUBLIC_DIR, rel));
-  if (!p.startsWith(PUBLIC_DIR)) { res.writeHead(403); return res.end(); }
+  const p = dosyaBul(rel);
+  if (!p) {
+    res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+    return res.end('<!DOCTYPE html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><body style="font-family:sans-serif;padding:30px;text-align:center"><h2>KATILIM · Sayfa bulunamadı</h2><p>Adres: ' + rel.replace(/[<>&"]/g, '') + '</p><p><a href="/">Kod ile katıl</a></p></body>');
+  }
   fs.readFile(p, (err, buf) => {
-    if (err) { res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' }); return res.end('<!DOCTYPE html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><body style="font-family:sans-serif;padding:30px;text-align:center"><h2>KATILIM · Sayfa bulunamadı</h2><p>Adres: ' + rel.replace(/[<>&"]/g, '') + '</p><p><a href="/">Kod ile katıl</a></p></body>'); }
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream', 'Cache-Control': rel.endsWith('.html') ? 'no-cache' : 'public, max-age=300' });
+    if (err) { res.writeHead(500); return res.end(); }
+    res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream', 'Cache-Control': p.endsWith('.html') ? 'no-cache' : 'public, max-age=300' });
     res.end(buf);
   });
 }
+
+// Açılışta eksik sayfa dosyası varsa günlüğe yaz (Render > Logs bölümünde görünür)
+const GEREKLI = ['giris.html', 'katil.html', 'ekran.html', 'yonetim.html', 'ortak.css', 'ortak.js', 'vendor/qrcode.js', 'favicon.svg'];
+const eksikDosyalar = () => GEREKLI.filter((f) => !dosyaBul(f));
 
 function validateQuestion(q) {
   const types = ['tek', 'coklu', 'acik', 'olcek'];
@@ -381,7 +401,7 @@ const server = http.createServer(async (req, res) => {
       if (p === '/yonetim') return serveFile(res, 'yonetim.html');
       if (m(/^\/k\/[^/]+\/?$/)) return serveFile(res, 'katil.html');
       if (m(/^\/ekran\/[^/]+\/?$/)) return serveFile(res, 'ekran.html');
-      if (p === '/saglik') return json(res, 200, { ok: true, etkinlik: db.events.length, baslangic: BASLANGIC });
+      if (p === '/saglik') return json(res, 200, { ok: true, etkinlik: db.events.length, baslangic: BASLANGIC, eksikDosyalar: eksikDosyalar() });
     }
 
     /* ---------- Katılımcı API ---------- */
@@ -845,6 +865,8 @@ loadDb();
 // Önceki oturumdan kalan (artık geçersiz) tünel adresini temizle
 if (db.settings.publicUrlKaynak === 'tunel' && !process.env.PUBLIC_URL) { db.settings.publicUrl = ''; }
 server.listen(PORT, () => {
+  const eksik = eksikDosyalar();
+  if (eksik.length) console.log('\n  ⚠ EKSİK SAYFA DOSYALARI: ' + eksik.join(', ') + '  →  bunları GitHub deposuna yükleyin.');
   console.log(`\n  KATILIM çalışıyor →  http://localhost:${PORT}`);
   console.log(`  Yönetim paneli    →  http://localhost:${PORT}/yonetim`);
   const yerel = yerelAdresler();

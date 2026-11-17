@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#004571">
+<title>Katılım · Kocaeli 2053</title>
+<link rel="stylesheet" href="/ortak.css">
+<link rel="icon" href="/favicon.svg">
+<style>
+  body { min-height: 100vh; padding-bottom: 40px; }
+  header { background: var(--lacivert); color: #fff; padding: 18px 20px 22px; padding-top: max(18px, env(safe-area-inset-top)); }
+  header .marka { font-size: .72rem; font-weight: 800; letter-spacing: .14em; color: var(--turkuaz); }
+  header h1 { margin: 4px 0 0; font-size: 1.25rem; line-height: 1.25; }
+  header .alt { opacity: .8; font-size: .92rem; margin-top: 2px; }
+  main { max-width: 560px; margin: 0 auto; padding: 16px; }
+  .kart { background: #fff; border-radius: var(--r); box-shadow: var(--golge); padding: 20px; margin-bottom: 16px; }
+  .durum-satiri { display: flex; align-items: center; gap: 8px; color: var(--soluk); font-size: .85rem; margin-bottom: 12px; }
+  .nokta { width: 8px; height: 8px; border-radius: 50%; background: var(--basari); }
+  .nokta.kopuk { background: var(--hata); animation: nabiz 1s infinite; }
+
+  label.alan { display: block; margin-bottom: 14px; }
+  label.alan span { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 6px; }
+  label.alan span em { color: var(--hata); font-style: normal; }
+  input[type=text], textarea { width: 100%; border: 1.5px solid var(--cizgi); border-radius: 10px; padding: 12px 14px; font-size: 1rem; outline: none; background: #fff; }
+  input[type=text]:focus, textarea:focus { border-color: var(--turkuaz); box-shadow: 0 0 0 3px rgba(39,169,189,.15); }
+  textarea { resize: vertical; min-height: 96px; }
+  .kvkk { background: var(--zemin); border-radius: 10px; padding: 12px 14px; font-size: .88rem; margin: 6px 0 16px; }
+  .kvkk details summary { cursor: pointer; color: var(--lacivert); font-weight: 600; }
+  .kvkk pre { white-space: pre-wrap; font-family: inherit; font-size: .82rem; color: var(--soluk); max-height: 240px; overflow: auto; margin: 10px 0 0; }
+  .onay { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; }
+  .onay input { width: 22px; height: 22px; flex: none; accent-color: var(--lacivert); margin: 0; }
+  .btn.genis { width: 100%; padding: 14px; font-size: 1.05rem; border-radius: 12px; }
+  .hata { color: var(--hata); font-size: .9rem; margin-top: 10px; min-height: 1em; }
+
+  .soru { position: relative; animation: belir .4s ease; }
+  .soru.ekranda { box-shadow: 0 0 0 2.5px var(--turkuaz), var(--golge); }
+  .soru .rozet { position: absolute; top: -10px; right: 16px; background: var(--turkuaz); color: #fff; font-size: .72rem; font-weight: 800; padding: 3px 10px; border-radius: 999px; letter-spacing: .03em; }
+  .soru h2 { font-size: 1.12rem; margin: 0 0 6px; line-height: 1.35; color: var(--lacivert); }
+  .soru .not { color: var(--soluk); font-size: .88rem; margin-bottom: 12px; }
+  .secenek { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border: 1.5px solid var(--cizgi); border-radius: 12px; margin-bottom: 9px; cursor: pointer; user-select: none; transition: border-color .15s, background .15s; font-weight: 500; }
+  .secenek input { width: 20px; height: 20px; flex: none; accent-color: var(--lacivert); margin: 0; }
+  .secenek.secili { border-color: var(--lacivert); background: #eef5fa; }
+  .secenek.pasif { opacity: .45; }
+  .olcek-sec { display: flex; gap: 8px; margin: 6px 0 6px; }
+  .olcek-sec button { flex: 1; aspect-ratio: 1; max-height: 60px; border: 1.5px solid var(--cizgi); background: #fff; border-radius: 12px; font-size: 1.2rem; font-weight: 800; }
+  .olcek-sec button.secili { background: var(--lacivert); color: #fff; border-color: var(--lacivert); }
+  .olcek-uc { display: flex; justify-content: space-between; color: var(--soluk); font-size: .8rem; margin-bottom: 14px; }
+  .kelime-kutulari { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .kelime-satir { display: grid; grid-template-columns: 30px 1fr; align-items: center; gap: 8px; }
+  .kelime-satir span { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .85rem; color: #fff; background: var(--lacivert); }
+  .yanit-liste { margin: 4px 0 0; padding-left: 20px; color: var(--metin); font-weight: 500; font-size: .92rem; }
+  .sayac { text-align: right; font-size: .78rem; color: var(--soluk); margin: 4px 0 10px; }
+  .tamam { display: flex; align-items: center; gap: 10px; background: #e9f6ef; color: var(--basari); padding: 12px 14px; border-radius: 12px; font-weight: 600; }
+  .tamam .yanit-ozet { color: var(--metin); font-weight: 500; font-size: .9rem; }
+  .tamam button { margin-left: auto; background: none; border: none; color: var(--lacivert); font-weight: 600; text-decoration: underline; padding: 0; }
+  .bekle { text-align: center; padding: 36px 20px; color: var(--soluk); }
+  .bekle .ikon { width: 54px; height: 54px; margin: 0 auto 14px; border-radius: 50%; border: 4px solid #d5e9ee; border-top-color: var(--turkuaz); animation: don 1.1s linear infinite; }
+  @keyframes don { to { transform: rotate(360deg); } }
+  .alt-bag { text-align: center; margin-top: 20px; font-size: .82rem; }
+  .alt-bag button { background: none; border: none; color: var(--soluk); text-decoration: underline; }
+</style>
+</head>
+<body>
+<header>
+  <div class="marka">KOCAELİ 2053 · KATILIM</div>
+  <h1 id="baslik">Yükleniyor…</h1>
+  <div class="alt" id="altbaslik"></div>
+</header>
+<main id="ana">
+  <div class="bekle"><div class="ikon"></div>Bağlanılıyor…</div>
+</main>
+
+<script src="/ortak.js"></script>
+<script>
+'use strict';
+const KOD = decodeURIComponent(location.pathname.split('/')[2] || '').toLocaleUpperCase('tr-TR');
+const ANAHTAR = 'katilim:' + KOD;
+let pid = localStorage.getItem(ANAHTAR);
+let durum = null;            // sunucudan gelen açık durum
+let yanitlarim = {};         // qid -> değer
+let duzenlenen = new Set();  // yanıtı değiştirilmek üzere açılan sorular
+const taslak = {};           // qid -> henüz gönderilmemiş seçim/metin
+const kartlar = new Map();   // qid -> DOM
+let gorulen = new Set();
+let bagli = true, akis = null;
+const ana = document.getElementById('ana');
+
+async function api(yol, govde) {
+  const r = await fetch('/api/etkinlik/' + encodeURIComponent(KOD) + yol, govde ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(govde) } : {});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.hata || 'Bağlantı hatası'), j);
+  return j;
+}
+
+async function basla() {
+  try {
+    const d = await api(pid ? '?pid=' + encodeURIComponent(pid) : '');
+    if (pid && !d.ben) { pid = null; localStorage.removeItem(ANAHTAR); }
+    yanitlarim = d.yanitlarim || {};
+    durum = d;
+    baslikYaz();
+    ciz();
+    if (!akis) akis = canliBaglan({
+      sse: '/api/etkinlik/' + encodeURIComponent(KOD) + '/akis', yoklama: '/api/etkinlik/' + encodeURIComponent(KOD) + '/durum', olay: 'durum', aralik: 2500,
+      onVeri: (s) => { durum = { ...durum, ...s }; baslikYaz(); ciz(); },
+      onDurum: (b) => {
+        bagli = b; const n = document.querySelector('.nokta'); if (n) n.classList.toggle('kopuk', !b);
+        clearTimeout(window._kopukZ);
+        const u = document.getElementById('kopukUyari');
+        if (b) { if (u) u.remove(); }
+        else window._kopukZ = setTimeout(() => { if (!bagli && !document.getElementById('kopukUyari')) ana.prepend(el('div', { id: 'kopukUyari', class: 'kart', style: { background: '#fff3df', color: '#7a4a00' } }, el('b', { text: 'Bağlantı koptu. ' }), 'İnternetinizi kontrol edin ya da salondaki ekranda görünen QR kodu yeniden okutun.')); }, 12000);
+      } });
+  } catch (e) {
+    ana.replaceChildren(el('div', { class: 'kart bekle' }, el('h2', { text: 'Etkinlik bulunamadı' }), el('p', { text: 'QR kodu yeniden okutun ya da kodu kontrol edin.' }), el('a', { class: 'btn', href: '/', text: 'Kod ile katıl' })));
+    document.getElementById('baslik').textContent = 'Katılım';
+  }
+}
+
+function baslikYaz() {
+  document.getElementById('baslik').textContent = durum.title || '';
+  document.getElementById('altbaslik').textContent = durum.subtitle || '';
+  document.title = (durum.title || 'Katılım') + ' · Katılım';
+}
+
+function ciz() {
+  if (durum.status !== 'aktif') {
+    kartlar.clear();
+    ana.replaceChildren(el('div', { class: 'kart bekle' }, el('h2', { text: durum.status === 'kapali' ? 'Etkinlik sona erdi' : 'Etkinlik henüz başlamadı' }), el('p', { text: durum.status === 'kapali' ? 'Katılımınız için teşekkür ederiz.' : 'Sunum başladığında bu sayfa kendiliğinden açılacak.' })));
+    return;
+  }
+  if (!pid) return kayitCiz();
+  sorulariCiz();
+}
+
+/* ---------------- Kayıt formu ---------------- */
+let otomatikKatiliyor = false;
+async function otomatikKatil() {
+  if (otomatikKatiliyor) return;
+  otomatikKatiliyor = true;
+  ana.replaceChildren(el('div', { class: 'kart bekle' }, el('div', { class: 'ikon' }), el('div', { text: 'Bağlanılıyor…' })));
+  try {
+    const r = await api('/katil', {});
+    pid = r.pid; localStorage.setItem(ANAHTAR, pid);
+    ana.replaceChildren(); ciz();
+  } catch (e) {
+    ana.replaceChildren(el('div', { class: 'kart bekle' }, el('div', { text: e.message }), el('button', { class: 'btn ana', style: { marginTop: '12px' }, text: 'Yeniden dene', onclick: () => otomatikKatil() })));
+  } finally { otomatikKatiliyor = false; }
+}
+
+function kayitCiz() {
+  const f0 = durum.fields || {};
+  const alanYok = ['ad', 'kurum', 'birim', 'unvan'].every((k) => f0[k] === 'kapali');
+  if (alanYok && !(durum.kvkk && durum.kvkk.metin)) return otomatikKatil();
+  if (ana.querySelector('#kayit')) return;   // açık formu silme
+  kartlar.clear();
+  const f = durum.fields || {};
+  const alanlar = [['ad', 'Ad Soyad', 'name'], ['kurum', 'Kurum / Kuruluş', 'organization'], ['birim', 'Birim / Daire Başkanlığı', 'off'], ['unvan', 'Unvan / Görev', 'organization-title']];
+  const form = el('form', { class: 'kart', id: 'kayit' });
+  form.append(el('h2', { style: { margin: '0 0 4px', color: 'var(--lacivert)', fontSize: '1.15rem' }, text: 'Hoş geldiniz' }),
+    el('p', { style: { margin: '0 0 18px', color: 'var(--soluk)', fontSize: '.92rem' }, text: 'Görüşlerinizi paylaşmadan önce lütfen kendinizi tanıtın.' }));
+  const dl = el('datalist', { id: 'kurumlar' }, (durum.kurumOnerileri || []).map((k) => el('option', { value: k })));
+  form.append(dl);
+  let alanVar = false;
+  for (const [k, ad, ac] of alanlar) {
+    if (f[k] === 'kapali') continue;
+    alanVar = true;
+    form.append(el('label', { class: 'alan' }, el('span', {}, ad, f[k] === 'zorunlu' ? el('em', { text: ' *' }) : ' (isteğe bağlı)'),
+      el('input', { type: 'text', name: k, autocomplete: ac, maxlength: k === 'ad' ? 80 : 120, required: f[k] === 'zorunlu', list: k === 'kurum' ? 'kurumlar' : null })));
+  }
+  if (!alanVar) form.querySelector('p').textContent = 'Bu etkinlikte yanıtlarınız isim alınmadan toplanmaktadır.';
+  if (durum.kvkk && durum.kvkk.metin) {
+    form.append(el('div', { class: 'kvkk' },
+      el('details', {}, el('summary', { text: 'Kişisel verilerin işlenmesine ilişkin aydınlatma metni' }), el('pre', { text: durum.kvkk.metin })),
+      el('label', { class: 'onay' }, el('input', { type: 'checkbox', name: 'kvkkOnay', required: true }), el('span', { text: 'Aydınlatma metnini okudum, bilgilendirildim.' }))));
+  }
+  const hata = el('div', { class: 'hata' });
+  form.append(el('button', { class: 'btn ana genis', type: 'submit', text: 'Katıl' }), hata);
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form); const govde = Object.fromEntries(fd.entries()); govde.kvkkOnay = !!fd.get('kvkkOnay');
+    const b = form.querySelector('button'); b.disabled = true; hata.textContent = '';
+    try {
+      const r = await api('/katil', govde);
+      pid = r.pid; localStorage.setItem(ANAHTAR, pid);
+      ana.replaceChildren(); ciz();
+      window.scrollTo({ top: 0 });
+    } catch (err) { hata.textContent = err.message; b.disabled = false; }
+  });
+  ana.replaceChildren(form);
+}
+
+/* ---------------- Sorular ---------------- */
+function sorulariCiz() {
+  if (!ana.querySelector('.durum-satiri')) {
+    ana.replaceChildren(el('div', { class: 'durum-satiri' }, el('span', { class: 'nokta' + (bagli ? '' : ' kopuk') }), el('span', { text: 'Canlı bağlantı · sorular sunucu tarafından açıldıkça burada belirir' })),
+      el('div', { id: 'liste' }),
+      el('div', { class: 'alt-bag' }, el('button', { text: 'Bu cihazda farklı bir kişi olarak katıl', onclick: () => { if (confirm('Yeni bir katılımcı kaydı açılsın mı?')) { localStorage.removeItem(ANAHTAR); pid = null; yanitlarim = {}; ana.replaceChildren(); ciz(); } } })));
+  }
+  const liste = ana.querySelector('#liste');
+  const sorular = [...durum.questions].sort((a, b) => (b.id === durum.currentQuestionId) - (a.id === durum.currentQuestionId));
+  const idler = new Set(sorular.map((q) => q.id));
+  for (const [id, k] of kartlar) if (!idler.has(id)) { k.remove(); kartlar.delete(id); }
+  let yeniGelen = null;
+  for (const q of sorular) {
+    const imza = JSON.stringify(q) + '|' + JSON.stringify(yanitlarim[q.id]) + '|' + duzenlenen.has(q.id) + '|' + (q.id === durum.currentQuestionId);
+    let k = kartlar.get(q.id);
+    if (!k || k.dataset.imza !== imza) {
+      const yeni = soruKarti(q); yeni.dataset.imza = imza;
+      if (k) k.replaceWith(yeni); kartlar.set(q.id, yeni); k = yeni;
+    }
+    liste.append(k);   // sıralamayı korur
+    if (!gorulen.has(q.id)) { gorulen.add(q.id); if (gorulen.size > 1 || sorular.length === 1) yeniGelen = k; }
+  }
+  let bos = liste.querySelector('.bekle');
+  if (!sorular.length) { if (!bos) liste.append(el('div', { class: 'kart bekle' }, el('div', { class: 'ikon' }), el('div', { text: 'Sunucunun bir soruyu açmasını bekliyoruz…' }))); }
+  else if (bos) bos.remove();
+  if (yeniGelen && !yanitlarim[yeniGelen.dataset.qid]) { yeniGelen.scrollIntoView({ behavior: 'smooth', block: 'start' }); navigator.vibrate && navigator.vibrate(60); }
+}
+
+function yanitOzeti(q, v) {
+  if (Array.isArray(v)) return v.join(' · ');
+  if (q.type === 'tek') return q.options[v];
+  if (q.type === 'coklu') return [].concat(v).map((i) => q.options[i]).join(', ');
+  return String(v);
+}
+
+function soruKarti(q) {
+  const k = el('section', { class: 'kart soru' + (q.id === durum.currentQuestionId ? ' ekranda' : ''), 'data-qid': q.id });
+  if (q.id === durum.currentQuestionId) k.append(el('div', { class: 'rozet', text: 'EKRANDAKİ SORU' }));
+  k.append(el('h2', { text: q.text }));
+  if (q.note) k.append(el('div', { class: 'not', text: q.note }));
+  const mevcut = yanitlarim[q.id];
+  if (mevcut !== undefined && !duzenlenen.has(q.id)) {
+    k.append(el('div', { class: 'tamam' }, el('span', { text: '✓' }), el('div', {}, el('div', { text: 'Yanıtınız iletildi' }),
+        Array.isArray(mevcut) ? el('ol', { class: 'yanit-liste' }, mevcut.map((x) => el('li', { text: x }))) : el('div', { class: 'yanit-ozet', text: yanitOzeti(q, mevcut) })),
+      el('button', { text: 'Değiştir', onclick: () => { duzenlenen.add(q.id); taslak[q.id] = mevcut; sorulariCiz(); } })));
+    return k;
+  }
+  const hata = el('div', { class: 'hata' });
+  const gonder = el('button', { class: 'btn ana genis', text: mevcut !== undefined ? 'Yanıtı güncelle' : 'Gönder' });
+  if (q.type === 'tek' || q.type === 'coklu') {
+    const coklu = q.type === 'coklu';
+    let sec = taslak[q.id] !== undefined ? [].concat(taslak[q.id]) : [];
+    const kutular = q.options.map((o, i) => {
+      const inp = el('input', { type: coklu ? 'checkbox' : 'radio', name: 'q' + q.id, value: i });
+      const lab = el('label', { class: 'secenek' }, inp, el('span', { text: o }));
+      inp.addEventListener('change', () => {
+        if (coklu) { sec = inp.checked ? [...sec, i] : sec.filter((x) => x !== i); }
+        else sec = [i];
+        taslak[q.id] = coklu ? sec : sec[0];
+        guncelle();
+      });
+      return lab;
+    });
+    const guncelle = () => {
+      kutular.forEach((lab, i) => {
+        const s = sec.includes(i); lab.querySelector('input').checked = s; lab.classList.toggle('secili', s);
+        const dolu = coklu && q.maxSelect && sec.length >= q.maxSelect && !s;
+        lab.classList.toggle('pasif', !!dolu); lab.querySelector('input').disabled = !!dolu;
+      });
+      gonder.disabled = !sec.length;
+    };
+    k.append(...kutular); guncelle();
+    gonder.onclick = () => yanitla(q, coklu ? sec : sec[0], gonder, hata);
+  } else if (q.type === 'olcek') {
+    const sar = el('div', { class: 'olcek-sec' });
+    let sec = taslak[q.id];
+    for (let v = q.scaleMin; v <= q.scaleMax; v++) {
+      const b = el('button', { type: 'button', text: String(v), class: sec === v ? 'secili' : '' });
+      b.onclick = () => { sec = v; taslak[q.id] = v; sar.querySelectorAll('button').forEach((x) => x.classList.toggle('secili', x === b)); gonder.disabled = false; };
+      sar.append(b);
+    }
+    k.append(sar, el('div', { class: 'olcek-uc' }, el('span', { text: q.minLabel ? q.scaleMin + ' = ' + q.minLabel : '' }), el('span', { text: q.maxLabel ? q.scaleMax + ' = ' + q.maxLabel : '' })));
+    gonder.disabled = sec === undefined;
+    gonder.onclick = () => yanitla(q, sec, gonder, hata);
+  } else if (q.kelimeSayisi) {
+    const deger = Array.isArray(taslak[q.id]) ? [...taslak[q.id]] : [];
+    const kutular = [];
+    const sar = el('div', { class: 'kelime-kutulari' });
+    const g = () => { taslak[q.id] = kutular.map((x) => x.value); gonder.disabled = !kutular.some((x) => x.value.trim()); };
+    for (let i = 0; i < q.kelimeSayisi; i++) {
+      const inp = el('input', { type: 'text', maxlength: q.maxLength, enterkeyhint: i < q.kelimeSayisi - 1 ? 'next' : 'send', autocapitalize: 'sentences', placeholder: `${i + 1}.` });
+      inp.value = deger[i] || '';
+      inp.addEventListener('input', g);
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (kutular[i + 1]) kutular[i + 1].focus(); else if (!gonder.disabled) gonder.click(); } });
+      kutular.push(inp);
+      sar.append(el('label', { class: 'kelime-satir' }, el('span', { text: String(i + 1) }), inp));
+    }
+    k.append(sar); g();
+    gonder.onclick = () => yanitla(q, kutular.map((x) => x.value.trim()).filter(Boolean), gonder, hata);
+  } else {
+    const kisa = q.maxLength <= 60;
+    const alan = kisa ? el('input', { type: 'text', maxlength: q.maxLength, placeholder: 'Yanıtınız…' }) : el('textarea', { maxlength: q.maxLength, placeholder: 'Yanıtınızı yazın…' });
+    alan.value = taslak[q.id] || '';
+    const sayac = el('div', { class: 'sayac' });
+    const g = () => { taslak[q.id] = alan.value; sayac.textContent = `${alan.value.length} / ${q.maxLength}`; gonder.disabled = !alan.value.trim(); };
+    alan.addEventListener('input', g);
+    alan.addEventListener('keydown', (e) => { if (kisa && e.key === 'Enter') { e.preventDefault(); gonder.click(); } });
+    k.append(alan, sayac); g();
+    gonder.onclick = () => yanitla(q, alan.value, gonder, hata);
+  }
+  k.append(gonder, hata);
+  return k;
+}
+
+async function yanitla(q, deger, btn, hata) {
+  btn.disabled = true; hata.textContent = ''; const eski = btn.textContent; btn.textContent = 'Gönderiliyor…';
+  try {
+    await api('/yanit', { pid, qid: q.id, value: deger });
+    yanitlarim[q.id] = q.type === 'acik' && !Array.isArray(deger) ? String(deger).trim() : deger;
+    duzenlenen.delete(q.id); delete taslak[q.id];
+    sorulariCiz();
+  } catch (e) {
+    hata.textContent = e.message; btn.disabled = false; btn.textContent = eski;
+    if (e.yenidenKayit) { localStorage.removeItem(ANAHTAR); pid = null; setTimeout(() => { ana.replaceChildren(); ciz(); }, 1500); }
+  }
+}
+
+basla();
+</script>
+</body>
+</html>

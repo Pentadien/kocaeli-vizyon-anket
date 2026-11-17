@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Katılım · Kocaeli 2053</title>
+<link rel="stylesheet" href="/ortak.css">
+<link rel="icon" href="/favicon.svg">
+<style>
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: linear-gradient(160deg, var(--lacivert) 0%, #01577f 55%, var(--turkuaz) 130%); }
+  .kutu { background: #fff; border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,.25); text-align: center; }
+  .marka { font-weight: 800; letter-spacing: .12em; color: var(--turkuaz); font-size: .8rem; }
+  h1 { margin: 6px 0 4px; color: var(--lacivert); font-size: 1.6rem; }
+  p { color: var(--soluk); margin: 0 0 22px; }
+  input { width: 100%; padding: 16px; font-size: 1.5rem; text-align: center; letter-spacing: .15em; text-transform: uppercase; border: 2px solid var(--cizgi); border-radius: 12px; outline: none; font-weight: 700; }
+  input:focus { border-color: var(--turkuaz); }
+  .btn { width: 100%; margin-top: 14px; padding: 14px; font-size: 1.05rem; }
+  .hata { color: var(--hata); min-height: 1.4em; margin-top: 10px; font-size: .9rem; }
+</style>
+</head>
+<body>
+  <form class="kutu" id="f">
+    <div class="marka">KOCAELİ 2053</div>
+    <h1>Katılım</h1>
+    <p>Ekranda gördüğünüz etkinlik kodunu girin</p>
+    <input id="kod" autocomplete="off" autocapitalize="characters" placeholder="KOD" maxlength="16" required>
+    <button class="btn ana" type="submit">Katıl</button>
+    <div class="hata" id="hata"></div>
+  </form>
+<script>
+  document.getElementById('f').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const kod = document.getElementById('kod').value.trim().toLocaleUpperCase('tr-TR');
+    const r = await fetch('/api/etkinlik/' + encodeURIComponent(kod));
+    if (r.ok) location.href = '/k/' + encodeURIComponent(kod);
+    else document.getElementById('hata').textContent = 'Bu koda ait etkinlik bulunamadı.';
+  });
+</script>
+</body>
+</html>
