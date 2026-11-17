@@ -125,10 +125,14 @@ button { cursor: pointer; }
   background: linear-gradient(90deg, #1b7f92, #27A9BD 60%, #6fd3e0); transition: width 1s cubic-bezier(.25,.9,.25,1); }
 .yaris-satir[data-derece="1"] .yaris-dolgu { background: linear-gradient(90deg, #9c7a22, #d4af37 55%, #f7e4a3); }
 .yaris-dolgu::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 0 35%, rgba(255,255,255,.35) 50%, transparent 65% 100%); transform: translateX(-100%); animation: parilti 3.2s ease-in-out infinite; }
-.yaris-puan { text-align: right; line-height: 1.05; min-width: 4.2em; }
-.yaris-puan b { display: block; font-size: calc(var(--satir) * .4); font-weight: 800; }
-.yaris-puan small { font-size: calc(var(--satir) * .2); color: var(--soluk); }
+.yaris-puan { text-align: right; line-height: 1; min-width: 4.2em; display: flex; align-items: baseline; justify-content: flex-end; gap: .3em; }
+.yaris-puan b { font-size: calc(var(--satir) * .42); font-weight: 800; }
+.yaris-puan small { font-size: calc(var(--satir) * .24); color: var(--soluk); }
 .yaris-satir.yeni .yaris-ad { animation: yeniParla 1.6s ease; }
 @keyframes yeniParla { 0% { color: var(--altin-acik); text-shadow: 0 0 12px rgba(247,228,163,.8); } 100% { text-shadow: none; } }
 .yaris-satir.yukseldi .yaris-govde { animation: yukselParla 1.4s ease; }
 @keyframes yukselParla { 0% { filter: brightness(1.6); } 100% { filter: none; } }
+
+/* Kelime bulutunda en çok yazılan kelime(ler) */
+.bulut span.zirve { color: #e9c766 !important; text-shadow: 0 0 18px rgba(212,175,55,.35); }
+body:not(.koyu) .bulut span.zirve { color: #9c7a22 !important; text-shadow: none; }

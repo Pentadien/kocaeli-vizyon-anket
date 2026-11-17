@@ -97,7 +97,7 @@ function wordFreq(texts) {
   return [...freq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 60).map(([text, count]) => ({ text, count }));
 }
 
-/* Öncelik puanlı sıralama: kutu sırası ağırlıktır (5 kutuda 1. = 5 puan … 5. = 1 puan).
+/* Başlık sıralaması: kaç kişinin yazdığına göre (kutu sırası yalnızca eşitlik bozmak için kullanılır).
    Aynı ifade büyük/küçük harf ve noktalama farkı gözetmeden birleştirilir. */
 function oncelikSiralamasi(cevaplar, kutu) {
   const harita = new Map();
@@ -118,7 +118,8 @@ function oncelikSiralamasi(cevaplar, kutu) {
     });
   }
   return [...harita.values()]
-    .sort((a, b) => b.puan - a.puan || b.kez - a.kez || a.anahtar.localeCompare(b.anahtar, 'tr'))
+    // En çok yazılan başlık önde; eşitlikte daha üst kutulara yazılan öne geçer
+    .sort((a, b) => b.kez - a.kez || b.puan - a.puan || a.anahtar.localeCompare(b.anahtar, 'tr'))
     .slice(0, 15)
     .map((o) => {
       const yazim = [...o.yazimlar.entries()].sort((a, b) => b[1] - a[1])[0][0];

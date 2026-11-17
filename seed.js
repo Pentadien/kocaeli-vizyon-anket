@@ -61,7 +61,7 @@ function seed(uid) {
         q({
           type: 'acik', display: 'yaris', kelimeSayisi: 5, maxLength: 60,
           text: "Kocaeli'de eksikliğini hissettiğiniz ilk 5 şey nedir?",
-          note: 'En önemlisinden başlayarak yazınız; 1. sıradaki 5 puan, 5. sıradaki 1 puan alır.',
+          note: 'Her kutuya bir başlık yazınız.',
         }),
       ],
     }),

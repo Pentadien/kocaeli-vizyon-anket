@@ -253,7 +253,7 @@ function tumuCiz() {
       const k = (x.question.options || []).length;
       kap.style.setProperty('--cubuk-yuk', k > 7 ? '.8em' : k > 5 ? '.95em' : '1.1em');
       kap.style.setProperty('--cubuk-yazi', k > 7 ? '.5em' : '.56em');
-      sonucCiz(kap, x.question, x.results, { enFazla: 4, enUzun: 66, yarisAdet: 5 });
+      sonucCiz(kap, x.question, x.results, { enFazla: 4, enUzun: 66, yarisAdet: 10 });
     }
     kart.querySelector('.tk-alt').replaceChildren(el('span', { text: fmtSayi(x.results.respondents) + ' yanıt' }),
       x.question.state === 'acik' ? el('span', { class: 'acik', text: '● açık' }) : el('span', { text: x.question.state === 'kapali' ? 'kapandı' : 'beklemede' }));
@@ -287,7 +287,7 @@ function soruCiz() {
     kap.replaceChildren(el('div', { class: 'gizli-sonuc' }, el('b', { text: fmtSayi(s.results.respondents) }), el('div', { text: 'kişi yanıtladı · sonuçlar birazdan' })));
   } else {
     if (kap.querySelector('.gizli-sonuc')) kap.replaceChildren();
-    sonucCiz(kap, q, s.results, { kisiler: s.showNames, enFazla: 24, yarisAdet: 8 });
+    sonucCiz(kap, q, s.results, { kisiler: s.showNames, enFazla: 24, yarisAdet: 10 });
   }
   const alt = document.getElementById('altCubuk');
   alt.replaceChildren(

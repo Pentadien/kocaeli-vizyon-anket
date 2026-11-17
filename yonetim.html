@@ -412,7 +412,7 @@ function sorularCiz(kap) {
           alan('En yüksek etiketi', el('input', { type: 'text', value: q.maxLabel || '', placeholder: 'ör. Çok güçlü', oninput: bagla('maxLabel') }))));
       } else {
         ozel.append(el('div', { class: 'izgara2' },
-          alan('Ekranda gösterim', el('select', { onchange: bagla('display') }, el('option', { value: 'kartlar', text: 'Yanıt kartları (görüş duvarı)', selected: !['bulut', 'yaris'].includes(q.display) }), el('option', { value: 'bulut', text: 'Kelime bulutu', selected: q.display === 'bulut' }), el('option', { value: 'yaris', text: 'Canlı sıralama yarışı (öncelik puanlı; kutu sayısı > 0 olmalı)', selected: q.display === 'yaris' }))),
+          alan('Ekranda gösterim', el('select', { onchange: bagla('display') }, el('option', { value: 'kartlar', text: 'Yanıt kartları (görüş duvarı)', selected: !['bulut', 'yaris'].includes(q.display) }), el('option', { value: 'bulut', text: 'Kelime bulutu', selected: q.display === 'bulut' }), el('option', { value: 'yaris', text: 'Canlı sıralama yarışı (en çok yazılan 10 başlık; kutu sayısı > 0 olmalı)', selected: q.display === 'yaris' }))),
           alan('En fazla karakter (kutu başına)', el('input', { type: 'number', min: 20, max: 1000, value: q.maxLength || 280, oninput: bagla('maxLength', Number) }))),
           el('div', { style: { height: '10px' } }),
           alan('Yanıt kutusu sayısı (0 = tek metin kutusu; ör. 5 = "5 anahtar kelime")', el('input', { type: 'number', min: 0, max: 10, value: q.kelimeSayisi || 0, oninput: bagla('kelimeSayisi', Number) })));

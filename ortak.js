@@ -194,7 +194,8 @@ function bulutCiz(kap, soru, sonuc, yeni) {
   const yeniListe = sirali.map((k) => {
     let s = mevcut.get(k.text);
     if (!s) { s = el('span', { 'data-k': k.text, text: k.text }); s.style.color = PALET[hash(k.text) % 7]; }
-    s.dataset.o = Math.sqrt(k.count / enBuyuk);   // boyut en sık kelimeye oranla; eşit sıklıktakiler eşit kalır
+    s.dataset.o = k.count / enBuyuk;   // boyut, kaç kez yazıldığıyla doğru orantılı: en çok yazılan en büyük
+    s.classList.toggle('zirve', k.count === enBuyuk && enBuyuk > 1);
     s.title = k.count + ' kez';
     return s;
   });
@@ -209,13 +210,14 @@ function bulutSigdir(b) {
   const ogeler = [...b.querySelectorAll('span[data-o]')];
   if (!ogeler.length || !b.clientHeight) return;
   const taban = parseFloat(b.dataset.taban) || 1;
-  const boyut = (s, f) => (taban * f * (0.55 + parseFloat(s.dataset.o) * 2.4)) + 'em';
+  const boyut = (s, f) => (taban * f * (0.35 + parseFloat(s.dataset.o) * 2.65)) + 'em';
   const eski = ogeler.map((s) => s.style.fontSize);
   ogeler.forEach((s) => { s.style.transition = 'none'; });
-  let f = 1.6; ogeler.forEach((s) => { s.style.fontSize = boyut(s, f); });
-  for (let i = 0; i < 45 && (b.scrollHeight > b.clientHeight + 1 || b.scrollWidth > b.clientWidth + 1) && f > 0.08; i++) {
-    f *= 0.92; ogeler.forEach((s) => { s.style.fontSize = boyut(s, f); });
-  }
+  // Alana sığan en büyük ölçeği ikili aramayla bul: bulut alanı doldurur ama taşmaz
+  const tasiyor = (f) => { ogeler.forEach((s) => { s.style.fontSize = boyut(s, f); }); return b.scrollHeight > b.clientHeight + 1 || b.scrollWidth > b.clientWidth + 1; };
+  let alt = 0.05, ust = 12;
+  for (let i = 0; i < 16; i++) { const orta = (alt + ust) / 2; if (tasiyor(orta)) ust = orta; else alt = orta; }
+  const f = alt * 0.97; tasiyor(f);
   // Ölçü bitti: eski boyuttan yenisine yumuşak geçiş
   const hedef = ogeler.map((s) => s.style.fontSize);
   ogeler.forEach((s, i) => { if (eski[i]) s.style.fontSize = eski[i]; });
@@ -232,7 +234,7 @@ function yarisCiz(kap, soru, sonuc, yeni, ops = {}) {
   let bos = y.querySelector('.bos-sonuc');
   if (!liste.length) { if (!bos) y.append(el('div', { class: 'bos-sonuc', text: 'Yanıtlar geldikçe sıralama oluşacak…' })); return; }
   if (bos) bos.remove();
-  const enYuksek = liste[0].puan || 1;
+  const enYuksek = liste[0].kez || 1;
   const satirYuk = y.clientHeight / adet;
   y.style.setProperty('--satir', satirYuk + 'px');
   const kalan = new Set(liste.map((x) => x.anahtar));
@@ -264,9 +266,9 @@ function yarisCiz(kap, soru, sonuc, yeni, ops = {}) {
     d.style.transform = `translateY(${i * satirYuk}px)`;
     d.querySelector('.yaris-no').textContent = i + 1;
     d.querySelector('.yaris-ad').textContent = x.text;
-    d.querySelector('.yaris-dolgu').style.width = Math.max(2, (x.puan / enYuksek) * 100) + '%';
-    sayac(d.querySelector('.yaris-puan b'), x.puan);
-    d.querySelector('.yaris-puan small').textContent = x.kez + ' kişi';
+    d.querySelector('.yaris-dolgu').style.width = Math.max(2, (x.kez / enYuksek) * 100) + '%';
+    sayac(d.querySelector('.yaris-puan b'), x.kez);
+    d.querySelector('.yaris-puan small').textContent = 'kişi';
   });
   if (!y._ro && window.ResizeObserver) { y._ro = new ResizeObserver(() => { const h = y.clientHeight / adet; y.style.setProperty('--satir', h + 'px'); y._satir.forEach((d, k) => { d.style.transform = `translateY(${y._sira.get(k) * h}px)`; }); }); y._ro.observe(y); }
 }
