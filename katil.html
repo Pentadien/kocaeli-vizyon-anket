@@ -57,6 +57,9 @@
   .bekle { text-align: center; padding: 36px 20px; color: var(--soluk); }
   .bekle .ikon { width: 54px; height: 54px; margin: 0 auto 14px; border-radius: 50%; border: 4px solid #d5e9ee; border-top-color: var(--turkuaz); animation: don 1.1s linear infinite; }
   @keyframes don { to { transform: rotate(360deg); } }
+  .toplu { position: sticky; bottom: 0; padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(transparent, var(--zemin) 28%); z-index: 5; }
+  .toplu .btn { box-shadow: 0 6px 20px rgba(0,69,113,.25); }
+  .toplu .hata { text-align: center; }
   .alt-bag { text-align: center; margin-top: 20px; font-size: .82rem; }
   .alt-bag button { background: none; border: none; color: var(--soluk); text-decoration: underline; }
 </style>
@@ -195,12 +198,13 @@ function sorulariCiz() {
   if (!ana.querySelector('.durum-satiri')) {
     ana.replaceChildren(el('div', { class: 'durum-satiri' }, el('span', { class: 'nokta' + (bagli ? '' : ' kopuk') }), el('span', { text: 'Canlı bağlantı · sorular sunucu tarafından açıldıkça burada belirir' })),
       el('div', { id: 'liste' }),
+      el('div', { id: 'toplu', class: 'toplu gizli' }, el('button', { class: 'btn ana genis', text: 'Gönder', onclick: () => topluGonder() }), el('div', { class: 'hata' })),
       el('div', { class: 'alt-bag' }, el('button', { text: 'Bu cihazda farklı bir kişi olarak katıl', onclick: () => { if (confirm('Yeni bir katılımcı kaydı açılsın mı?')) { localStorage.removeItem(ANAHTAR); pid = null; yanitlarim = {}; ana.replaceChildren(); ciz(); } } })));
   }
   const liste = ana.querySelector('#liste');
   const sorular = [...durum.questions].sort((a, b) => (b.id === durum.currentQuestionId) - (a.id === durum.currentQuestionId));
   const idler = new Set(sorular.map((q) => q.id));
-  for (const [id, k] of kartlar) if (!idler.has(id)) { k.remove(); kartlar.delete(id); }
+  for (const [id, k] of kartlar) if (!idler.has(id)) { k.remove(); kartlar.delete(id); bekleyenler.delete(id); }
   let yeniGelen = null;
   for (const q of sorular) {
     const imza = JSON.stringify(q) + '|' + JSON.stringify(yanitlarim[q.id]) + '|' + duzenlenen.has(q.id) + '|' + (q.id === durum.currentQuestionId);
@@ -215,6 +219,7 @@ function sorulariCiz() {
   let bos = liste.querySelector('.bekle');
   if (!sorular.length) { if (!bos) liste.append(el('div', { class: 'kart bekle' }, el('div', { class: 'ikon' }), el('div', { text: 'Sunucunun bir soruyu açmasını bekliyoruz…' }))); }
   else if (bos) bos.remove();
+  topluDurum();
   if (yeniGelen && !yanitlarim[yeniGelen.dataset.qid]) { yeniGelen.scrollIntoView({ behavior: 'smooth', block: 'start' }); navigator.vibrate && navigator.vibrate(60); }
 }
 
@@ -232,13 +237,16 @@ function soruKarti(q) {
   if (q.note) k.append(el('div', { class: 'not', text: q.note }));
   const mevcut = yanitlarim[q.id];
   if (mevcut !== undefined && !duzenlenen.has(q.id)) {
+    bekleyenler.delete(q.id);
     k.append(el('div', { class: 'tamam' }, el('span', { text: '✓' }), el('div', {}, el('div', { text: 'Yanıtınız iletildi' }),
         Array.isArray(mevcut) ? el('ol', { class: 'yanit-liste' }, mevcut.map((x) => el('li', { text: x }))) : el('div', { class: 'yanit-ozet', text: yanitOzeti(q, mevcut) })),
       el('button', { text: 'Değiştir', onclick: () => { duzenlenen.add(q.id); taslak[q.id] = mevcut; sorulariCiz(); } })));
     return k;
   }
   const hata = el('div', { class: 'hata' });
-  const gonder = el('button', { class: 'btn ana genis', text: mevcut !== undefined ? 'Yanıtı güncelle' : 'Gönder' });
+  // Kartta ayrı düğme yok: değer ve boşluk durumu ortak "Gönder" düğmesi için kaydedilir
+  const gonder = { q, hata, kart: k, disabled: true, deger: null, guncelleme: mevcut !== undefined, click: () => topluGonder() };
+  bekleyenler.set(q.id, gonder);
   if (q.type === 'tek' || q.type === 'coklu') {
     const coklu = q.type === 'coklu';
     let sec = taslak[q.id] !== undefined ? [].concat(taslak[q.id]) : [];
@@ -259,62 +267,97 @@ function soruKarti(q) {
         const dolu = coklu && q.maxSelect && sec.length >= q.maxSelect && !s;
         lab.classList.toggle('pasif', !!dolu); lab.querySelector('input').disabled = !!dolu;
       });
-      gonder.disabled = !sec.length;
+      gonder.disabled = !sec.length; topluDurum();
     };
     k.append(...kutular); guncelle();
-    gonder.onclick = () => yanitla(q, coklu ? sec : sec[0], gonder, hata);
+    gonder.deger = () => coklu ? sec : sec[0];
   } else if (q.type === 'olcek') {
     const sar = el('div', { class: 'olcek-sec' });
     let sec = taslak[q.id];
     for (let v = q.scaleMin; v <= q.scaleMax; v++) {
       const b = el('button', { type: 'button', text: String(v), class: sec === v ? 'secili' : '' });
-      b.onclick = () => { sec = v; taslak[q.id] = v; sar.querySelectorAll('button').forEach((x) => x.classList.toggle('secili', x === b)); gonder.disabled = false; };
+      b.onclick = () => { sec = v; taslak[q.id] = v; sar.querySelectorAll('button').forEach((x) => x.classList.toggle('secili', x === b)); gonder.disabled = false; hata.textContent = ''; topluDurum(); };
       sar.append(b);
     }
     k.append(sar, el('div', { class: 'olcek-uc' }, el('span', { text: q.minLabel ? q.scaleMin + ' = ' + q.minLabel : '' }), el('span', { text: q.maxLabel ? q.scaleMax + ' = ' + q.maxLabel : '' })));
     gonder.disabled = sec === undefined;
-    gonder.onclick = () => yanitla(q, sec, gonder, hata);
+    gonder.deger = () => sec;
   } else if (q.kelimeSayisi) {
     const deger = Array.isArray(taslak[q.id]) ? [...taslak[q.id]] : [];
     const kutular = [];
     const sar = el('div', { class: 'kelime-kutulari' });
-    const g = () => { taslak[q.id] = kutular.map((x) => x.value); gonder.disabled = !kutular.some((x) => x.value.trim()); };
+    const g = () => { taslak[q.id] = kutular.map((x) => x.value); gonder.disabled = !kutular.some((x) => x.value.trim()); if (!gonder.disabled) hata.textContent = ''; topluDurum(); };
     for (let i = 0; i < q.kelimeSayisi; i++) {
       const inp = el('input', { type: 'text', maxlength: q.maxLength, enterkeyhint: i < q.kelimeSayisi - 1 ? 'next' : 'send', autocapitalize: 'sentences', placeholder: `${i + 1}.` });
       inp.value = deger[i] || '';
       inp.addEventListener('input', g);
-      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (kutular[i + 1]) kutular[i + 1].focus(); else if (!gonder.disabled) gonder.click(); } });
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (kutular[i + 1]) kutular[i + 1].focus(); else gonder.click(); } });
       kutular.push(inp);
       sar.append(el('label', { class: 'kelime-satir' }, el('span', { text: String(i + 1) }), inp));
     }
     k.append(sar); g();
-    gonder.onclick = () => yanitla(q, kutular.map((x) => x.value.trim()).filter(Boolean), gonder, hata);
+    gonder.deger = () => kutular.map((x) => x.value.trim()).filter(Boolean);
   } else {
     const kisa = q.maxLength <= 60;
     const alan = kisa ? el('input', { type: 'text', maxlength: q.maxLength, placeholder: 'Yanıtınız…' }) : el('textarea', { maxlength: q.maxLength, placeholder: 'Yanıtınızı yazın…' });
     alan.value = taslak[q.id] || '';
     const sayac = el('div', { class: 'sayac' });
-    const g = () => { taslak[q.id] = alan.value; sayac.textContent = `${alan.value.length} / ${q.maxLength}`; gonder.disabled = !alan.value.trim(); };
+    const g = () => { taslak[q.id] = alan.value; sayac.textContent = `${alan.value.length} / ${q.maxLength}`; gonder.disabled = !alan.value.trim(); if (!gonder.disabled) hata.textContent = ''; topluDurum(); };
     alan.addEventListener('input', g);
     alan.addEventListener('keydown', (e) => { if (kisa && e.key === 'Enter') { e.preventDefault(); gonder.click(); } });
     k.append(alan, sayac); g();
-    gonder.onclick = () => yanitla(q, alan.value, gonder, hata);
+    gonder.deger = () => alan.value;
   }
-  k.append(gonder, hata);
+  k.append(hata);
   return k;
 }
 
-async function yanitla(q, deger, btn, hata) {
-  btn.disabled = true; hata.textContent = ''; const eski = btn.textContent; btn.textContent = 'Gönderiliyor…';
-  try {
-    await api('/yanit', { pid, qid: q.id, value: deger });
-    yanitlarim[q.id] = q.type === 'acik' && !Array.isArray(deger) ? String(deger).trim() : deger;
-    duzenlenen.delete(q.id); delete taslak[q.id];
-    sorulariCiz();
-  } catch (e) {
-    hata.textContent = e.message; btn.disabled = false; btn.textContent = eski;
-    if (e.yenidenKayit) { localStorage.removeItem(ANAHTAR); pid = null; setTimeout(() => { ana.replaceChildren(); ciz(); }, 1500); }
+const bekleyenler = new Map();   // qid -> yanıt bekleyen kartın kaydı
+let gonderiliyor = false;
+const acikBekleyenler = () => [...bekleyenler.values()].filter((x) => x.kart.isConnected);
+
+/* Sayfanın altındaki tek düğmenin yazısı ve görünürlüğü */
+function topluDurum() {
+  const kutu = document.getElementById('toplu'); if (!kutu) return;
+  const liste = acikBekleyenler();
+  kutu.classList.toggle('gizli', !liste.length);
+  if (!liste.length || gonderiliyor) return;
+  const btn = kutu.querySelector('button');
+  btn.textContent = liste.every((x) => x.guncelleme) ? (liste.length > 1 ? 'Yanıtları güncelle' : 'Yanıtı güncelle') : (liste.length > 1 ? 'Yanıtları gönder' : 'Gönder');
+}
+
+async function topluGonder() {
+  if (gonderiliyor) return;
+  const kutu = document.getElementById('toplu');
+  const genelHata = kutu.querySelector('.hata');
+  const liste = acikBekleyenler();
+  genelHata.textContent = '';
+  liste.forEach((x) => { x.hata.textContent = ''; });
+  const bos = liste.filter((x) => x.disabled);
+  if (bos.length) {
+    bos.forEach((x) => { x.hata.textContent = 'Bu soruyu henüz yanıtlamadınız.'; });
+    genelHata.textContent = bos.length > 1 ? 'Lütfen tüm soruları yanıtlayın.' : 'Lütfen işaretli soruyu da yanıtlayın.';
+    bos[0].kart.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
   }
+  const btn = kutu.querySelector('button');
+  gonderiliyor = true; btn.disabled = true; btn.textContent = 'Gönderiliyor…';
+  for (const x of liste) {
+    const deger = x.deger();
+    try {
+      await api('/yanit', { pid, qid: x.q.id, value: deger });
+      yanitlarim[x.q.id] = x.q.type === 'acik' && !Array.isArray(deger) ? String(deger).trim() : deger;
+      duzenlenen.delete(x.q.id); delete taslak[x.q.id]; bekleyenler.delete(x.q.id);
+    } catch (e) {
+      x.hata.textContent = e.message;
+      genelHata.textContent = 'Bazı yanıtlar gönderilemedi; işaretli soruyu kontrol edin.';
+      x.kart.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (e.yenidenKayit) { localStorage.removeItem(ANAHTAR); pid = null; setTimeout(() => { ana.replaceChildren(); ciz(); }, 1500); }
+      break;
+    }
+  }
+  gonderiliyor = false; btn.disabled = false;
+  sorulariCiz();
 }
 
 basla();
