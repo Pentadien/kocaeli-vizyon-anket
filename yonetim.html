@@ -506,27 +506,58 @@ function qrIndir() {
 
 /* ---------------- Katılımcılar ve veri ---------------- */
 async function veriCiz(kap) {
-  ev = await api('/etkinlik/' + ev.id);
-  const k = ev.katilimcilar.sort((a, b) => a.ts - b.ts);
+  const istek = (veriCiz._sayac = (veriCiz._sayac || 0) + 1);
+  const hedef = () => document.getElementById('icerik');
+  kap.replaceChildren(el('div', { class: 'kart', style: { color: 'var(--soluk)' }, text: 'Veriler yükleniyor…' }));
+  let yeni, canliVeri;
+  try {
+    const zaman = new Promise((_, red) => setTimeout(() => red(new Error('Sunucu yanıt vermedi (uyku modundan uyanıyor olabilir).')), 25000));
+    [yeni, canliVeri] = await Promise.race([Promise.all([api('/etkinlik/' + ev.id), api('/etkinlik/' + ev.id + '/canli')]), zaman]);
+  } catch (e) {
+    if (istek !== veriCiz._sayac || sekme !== 'veri' || !hedef()) return;
+    hedef().replaceChildren(el('div', { class: 'kart', style: { background: '#fbe9e9', color: '#8a2020' } },
+      el('b', { text: 'Veriler alınamadı. ' }), e.message, ' ', el('button', { class: 'btn kucuk', text: 'Yeniden dene', onclick: () => veriCiz(hedef()) })));
+    return;
+  }
+  // Bu arada başka sekmeye geçildiyse ya da sayfa yeniden çizildiyse eski isteği bırak
+  if (istek !== veriCiz._sayac || sekme !== 'veri' || !hedef() || yeni.id !== ev.id) return;
+  ev = yeni;
+  const alan = hedef();
+  const k = (ev.katilimcilar || []).sort((a, b) => a.ts - b.ts);
+  const sonuclar = (canliVeri.veri || canliVeri).results || [];
   const indir = (tur) => fetch('/api/yonetim/etkinlik/' + ev.id + '/disa-aktar.' + tur, { headers: { 'x-yonetim-anahtari': ANAHTAR } }).then((r) => r.blob()).then((b) => {
     const a = el('a', { href: URL.createObjectURL(b), download: `${ev.code}-${new Date().toISOString().slice(0, 10)}-${tur === 'csv' ? 'yanitlar.csv' : 'yedek.json'}` }); document.body.append(a); a.click(); a.remove();
   });
-  const kurumSay = {}; k.forEach((x) => { const n = x.kurum || '(belirtilmemiş)'; kurumSay[n] = (kurumSay[n] || 0) + 1; });
-  kap.replaceChildren(
+  const tipAd = { tek: 'Tek seçim', coklu: 'Çoklu seçim', acik: 'Açık uçlu', olcek: 'Ölçek' };
+  const ozet = el('div', { class: 'kart' },
+    el('h3', { style: { marginTop: 0, color: 'var(--lacivert)' }, text: 'Özet' }),
+    el('div', { style: { display: 'flex', gap: '28px', flexWrap: 'wrap', marginBottom: '14px' } },
+      el('div', {}, el('div', { style: { fontSize: '2rem', fontWeight: 800, color: 'var(--lacivert)' }, text: fmtSayi(k.length) }), el('div', { style: { color: 'var(--soluk)' }, text: 'katılımcı' })),
+      el('div', {}, el('div', { style: { fontSize: '2rem', fontWeight: 800, color: 'var(--lacivert)' }, text: fmtSayi(sonuclar.reduce((t, r) => t + r.respondents, 0)) }), el('div', { style: { color: 'var(--soluk)' }, text: 'toplam yanıt' }))),
+    el('table', {}, el('thead', {}, el('tr', {}, ...['#', 'Soru', 'Tip', 'Yanıt'].map((h) => el('th', { text: h })))),
+      el('tbody', {}, ...ev.questions.map((q, i) => {
+        const r = sonuclar.find((x) => x.qid === q.id);
+        return el('tr', {}, el('td', { text: i + 1 }), el('td', { text: q.text }), el('td', { text: tipAd[q.type] || '' }), el('td', { style: { fontWeight: 700 }, text: r ? r.respondents : 0 }));
+      }))));
+  // Katılımcı listesi yalnızca isim/kurum bilgisi alınan etkinliklerde anlamlı
+  const isimli = k.some((x) => x.ad || x.kurum || x.birim || x.unvan);
+  const ikinci = isimli
+    ? el('div', { class: 'kart' }, el('h3', { style: { marginTop: 0, color: 'var(--lacivert)' }, text: `Katılımcılar (${k.length})` }),
+        el('table', {}, el('thead', {}, el('tr', {}, ...['#', 'Ad Soyad', 'Kurum', 'Birim', 'Unvan', 'Saat'].map((h) => el('th', { text: h })))),
+          el('tbody', {}, ...k.map((x, i) => el('tr', {}, ...[i + 1, x.ad, x.kurum, x.birim, x.unvan, new Date(x.ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })].map((c) => el('td', { text: c == null ? '' : String(c) })))))))
+    : el('div', { class: 'kart', style: { color: 'var(--soluk)' } }, el('h3', { style: { marginTop: 0, color: 'var(--lacivert)' }, text: 'Katılımcı bilgisi' }),
+        'Bu etkinlikte katılımcılardan isim veya kurum bilgisi alınmıyor; yanıtlar anonimdir. Tüm yanıtları soru ve saat bilgisiyle birlikte "Yanıtları Excel (CSV) olarak indir" düğmesiyle alabilirsiniz.');
+  alan.replaceChildren(
     el('div', { class: 'kontrol-cubuk' },
       el('button', { class: 'btn ana', text: '⬇ Yanıtları Excel (CSV) olarak indir', onclick: () => indir('csv') }),
-      el('button', { class: 'btn', text: '⬇ Tam yedek (JSON)', onclick: () => indir('json') }),
+      el('button', { class: 'btn', text: '⬇ Bu etkinliğin yedeği (JSON)', onclick: () => indir('json') }),
+      el('button', { class: 'btn', text: '↻ Yenile', onclick: () => veriCiz(hedef()) }),
       el('span', { class: 'bosluk', style: { flex: 1 } }),
       el('button', { class: 'btn tehlike', text: 'Tüm yanıtları ve katılımcıları sıfırla', onclick: async () => {
         if (prompt(`Prova sonrası temizlik içindir. Tüm katılımcı ve yanıtlar silinecek. Onay için "${ev.code}" yazın:`) !== ev.code) return;
-        await api('/etkinlik/' + ev.id + '/kontrol', 'POST', { islem: 'sifirla' }); bildir('Etkinlik sıfırlandı'); veriCiz(kap); listeYukle();
+        await api('/etkinlik/' + ev.id + '/kontrol', 'POST', { islem: 'sifirla' }); bildir('Etkinlik sıfırlandı'); veriCiz(hedef()); listeYukle();
       } })),
-    el('div', { class: 'canli-izgara' },
-      el('div', { class: 'kart' }, el('h3', { style: { marginTop: 0, color: 'var(--lacivert)' }, text: `Katılımcılar (${k.length})` }),
-        el('table', {}, el('thead', {}, el('tr', {}, ...['#', 'Ad Soyad', 'Kurum', 'Birim', 'Unvan', 'Saat'].map((h) => el('th', { text: h })))),
-          el('tbody', {}, ...k.map((x, i) => el('tr', {}, ...[i + 1, x.ad, x.kurum, x.birim, x.unvan, new Date(x.ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })].map((c) => el('td', { text: c ?? '' }))))))),
-      el('div', { class: 'kart' }, el('h3', { style: { marginTop: 0, color: 'var(--lacivert)' }, text: 'Kurumlara göre katılım' }),
-        el('table', {}, el('tbody', {}, ...Object.entries(kurumSay).sort((a, b) => b[1] - a[1]).map(([n, c]) => el('tr', {}, el('td', { text: n }), el('td', { style: { textAlign: 'right', fontWeight: 700 }, text: c }))))))));
+    el('div', { class: 'canli-izgara' }, ozet, ikinci));
 }
 </script>
 </body>
