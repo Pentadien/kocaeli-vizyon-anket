@@ -133,6 +133,6 @@ button { cursor: pointer; }
 .yaris-satir.yukseldi .yaris-govde { animation: yukselParla 1.4s ease; }
 @keyframes yukselParla { 0% { filter: brightness(1.6); } 100% { filter: none; } }
 
-/* Kelime bulutunda en çok yazılan kelime(ler) */
-.bulut span.zirve { color: #e9c766 !important; text-shadow: 0 0 18px rgba(212,175,55,.35); }
-body:not(.koyu) .bulut span.zirve { color: #9c7a22 !important; text-shadow: none; }
+/* Kelime bulutunda en çok yazılan kelime(ler): renk temaya göre --zirve ile gelir */
+.bulut span.zirve { color: var(--zirve, #e9c766) !important; text-shadow: 0 0 18px var(--zirve-isik, rgba(212,175,55,.35)); }
+body:not(.koyu) .bulut span.zirve { color: var(--zirve, #9c7a22) !important; text-shadow: 0 0 14px var(--zirve-isik, transparent); }

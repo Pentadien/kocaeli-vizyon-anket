@@ -168,7 +168,7 @@ function publicState(ev) {
   };
 }
 function stripQuestion(q) {
-  const o = { id: q.id, type: q.type, text: q.text, note: q.note || '' };
+  const o = { id: q.id, type: q.type, text: q.text, note: q.note || '', ton: q.ton || '' };
   if (q.type === 'tek' || q.type === 'coklu') { o.options = q.options; o.maxSelect = q.maxSelect || 0; }
   if (q.type === 'olcek') { o.scaleMin = q.scaleMin ?? 1; o.scaleMax = q.scaleMax ?? 5; o.minLabel = q.minLabel || ''; o.maxLabel = q.maxLabel || ''; }
   if (q.type === 'acik') { o.maxLength = q.maxLength || 280; o.kelimeSayisi = q.kelimeSayisi || 0; }
@@ -182,6 +182,7 @@ function screenState(ev) {
     code: ev.code, title: ev.title, subtitle: ev.subtitle, status: ev.status,
     publicUrl: db.settings.publicUrl || '',
     screen: ev.screen || 'lobi',
+    tema: ev.tema || 'mavi',
     showNames: !!ev.showNamesOnScreen,
     participantCount: Object.keys(ev.participants).length,
     questionIndex: q ? ev.questions.indexOf(q) + 1 : 0,
@@ -344,6 +345,8 @@ function validateQuestion(q) {
     state: ['beklemede', 'acik', 'kapali'].includes(q.state) ? q.state : 'beklemede',
     showResults: q.showResults !== false,
     display: clean(q.display, 20),
+    // Renk temaları için sorunun tonu: olumlu / olumsuz / nötr
+    ton: ['olumlu', 'olumsuz'].includes(q.ton) ? q.ton : '',
   };
   if (out.type === 'tek' || out.type === 'coklu') {
     out.options = (Array.isArray(q.options) ? q.options : []).map((o) => clean(o, 140)).filter(Boolean).slice(0, 12);
@@ -648,6 +651,7 @@ const server = http.createServer(async (req, res) => {
           case 'sonuc': if (q) q.showResults = !!b.deger; break;
           case 'lobi': ev.screen = 'lobi'; break;
           case 'tumu': ev.screen = 'tumu'; break;
+          case 'tema': if (['mavi', 'beyaz', 'zitlik', 'yesilkirmizi'].includes(b.deger)) ev.tema = b.deger; break;
           case 'soruEkrani': ev.screen = 'soru'; break;
           case 'sonraki': case 'onceki': {
             const ni = b.islem === 'sonraki' ? idx + 1 : idx - 1;
@@ -668,7 +672,7 @@ const server = http.createServer(async (req, res) => {
           default: return json(res, 400, { hata: 'Bilinmeyen işlem' });
         }
         markDirty(ev, { meta: true });
-        return json(res, 200, { ok: true, currentQuestionId: ev.currentQuestionId, screen: ev.screen, questions: ev.questions.map((x) => ({ id: x.id, state: x.state, showResults: x.showResults !== false })) });
+        return json(res, 200, { ok: true, currentQuestionId: ev.currentQuestionId, screen: ev.screen, tema: ev.tema || 'mavi', questions: ev.questions.map((x) => ({ id: x.id, state: x.state, showResults: x.showResults !== false })) });
       }
 
       if ((r = m(/^\/api\/yonetim\/etkinlik\/([^/]+)\/disa-aktar\.(csv|json)$/)) && req.method === 'GET') {

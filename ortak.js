@@ -188,12 +188,16 @@ function bulutCiz(kap, soru, sonuc, yeni) {
   if (!kelimeler.length) { b.replaceChildren(el('div', { class: 'bos-sonuc', text: 'Yanıtlar geldikçe kelime bulutu oluşacak…' })); return; }
   const enBuyuk = kelimeler[0].count;
   b.dataset.taban = parseFloat(getComputedStyle(kap).getPropertyValue('--bulut-taban')) || 1;
+  // Tema paleti: kapsayıcıda data-palet varsa o renkler kullanılır (ör. olumlu = yeşiller)
+  const palet = (kap.dataset.palet || '').split(',').filter(Boolean);
+  const renk = (t) => (palet.length ? palet[hash(t) % palet.length] : PALET[hash(t) % 7]);
   // Kararlı yerleşim: en sık kelime ortada kalsın diye sıralamayı ortadan dışa doğru diz
   const sirali = []; kelimeler.forEach((k, i) => (i % 2 ? sirali.push(k) : sirali.unshift(k)));
   const mevcut = new Map([...b.querySelectorAll('span')].map((s) => [s.dataset.k, s]));
   const yeniListe = sirali.map((k) => {
     let s = mevcut.get(k.text);
-    if (!s) { s = el('span', { 'data-k': k.text, text: k.text }); s.style.color = PALET[hash(k.text) % 7]; }
+    if (!s) { s = el('span', { 'data-k': k.text, text: k.text }); }
+    s.style.color = renk(k.text);
     s.dataset.o = k.count / enBuyuk;   // boyut, kaç kez yazıldığıyla doğru orantılı: en çok yazılan en büyük
     s.classList.toggle('zirve', k.count === enBuyuk && enBuyuk > 1);
     s.title = k.count + ' kez';

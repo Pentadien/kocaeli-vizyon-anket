@@ -52,16 +52,17 @@ function seed(uid) {
       // Kayıt ekranı yok: QR okutan kişi doğrudan sorulara bağlanır; kişisel veri alınmaz
       fields: { ad: 'kapali', kurum: 'kapali', birim: 'kapali', unvan: 'kapali' },
       kvkk: { metin: '' },
+      tema: 'mavi',
       questions: [
         q({
-          type: 'acik', display: 'bulut', kelimeSayisi: 5, maxLength: 40,
-          text: "2053 yılında yaşamak istediğiniz Kocaeli'yi tanımlayan 5 anahtar kelime yazınız.",
+          type: 'acik', display: 'bulut', kelimeSayisi: 3, maxLength: 40, ton: 'olumlu',
+          text: "2053 yılında yaşamak istediğiniz Kocaeli'yi tanımlayan 3 anahtar kelime yazınız.",
           note: 'Her kutuya bir kelime ya da kısa bir ifade yazınız.',
         }),
         q({
-          type: 'acik', display: 'yaris', kelimeSayisi: 5, maxLength: 60,
-          text: "Kocaeli'de eksikliğini hissettiğiniz ilk 5 şey nedir?",
-          note: 'Her kutuya bir başlık yazınız.',
+          type: 'acik', display: 'bulut', kelimeSayisi: 3, maxLength: 40, ton: 'olumsuz',
+          text: "Kocaeli'de eksikliğini hissettiğiniz ilk 3 şey nedir?",
+          note: 'Her kutuya bir kelime ya da kısa bir ifade yazınız.',
         }),
       ],
     }),
