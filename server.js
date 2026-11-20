@@ -53,6 +53,24 @@ function loadDb() {
 }
 
 let saveTimer = null;
+/* ---------- Deneme (sahte) yanıtları: sunum öncesi ekran provası için ---------- */
+const DENEME_KELIME = {
+  olumlu: ['yeşil', 'yeşil', 'yeşil', 'dirençli', 'dirençli', 'yaşanabilir', 'yaşanabilir', 'erişilebilir', 'temiz', 'güvenli', 'planlı', 'akıllı', 'denize açık', 'kültürlü', 'üretken', 'sürdürülebilir', 'huzurlu', 'adil', 'modern', 'yürünebilir', 'kapsayıcı', 'teknolojik', 'sağlıklı'],
+  olumsuz: ['toplu taşıma', 'toplu taşıma', 'toplu taşıma', 'yeşil alan', 'yeşil alan', 'otopark', 'otopark', 'kültür merkezi', 'kreş', 'bisiklet yolu', 'kütüphane', 'deniz erişimi', 'sinema', 'yaya yolu', 'spor alanı', 'trafik çözümü', 'konser salonu', 'park', 'meydan', 'gençlik merkezi', 'sosyal tesis', 'temiz hava'],
+};
+const rast = (a) => a[Math.floor(Math.random() * a.length)];
+function denemeDegeri(q) {
+  if (q.type === 'tek') return Math.floor(Math.random() * q.options.length);
+  if (q.type === 'coklu') {
+    const k = 1 + Math.floor(Math.random() * Math.min(q.maxSelect || q.options.length, q.options.length));
+    return [...q.options.keys()].sort(() => Math.random() - 0.5).slice(0, k).sort((a, c) => a - c);
+  }
+  if (q.type === 'olcek') { const lo = q.scaleMin ?? 1, hi = q.scaleMax ?? 5; return lo + Math.floor(Math.random() * (hi - lo + 1)); }
+  const havuz = DENEME_KELIME[q.ton] || DENEME_KELIME.olumlu.concat(DENEME_KELIME.olumsuz);
+  if (q.kelimeSayisi) { const s = new Set(); while (s.size < Math.min(q.kelimeSayisi, 8)) s.add(rast(havuz)); return [...s]; }
+  return rast(havuz);
+}
+
 function saveSoon() {
   if (saveTimer) return;
   saveTimer = setTimeout(() => { saveTimer = null; saveNow(); }, 400);
@@ -651,7 +669,7 @@ const server = http.createServer(async (req, res) => {
           case 'sonuc': if (q) q.showResults = !!b.deger; break;
           case 'lobi': ev.screen = 'lobi'; break;
           case 'tumu': ev.screen = 'tumu'; break;
-          case 'tema': if (['mavi', 'beyaz', 'zitlik', 'yesilkirmizi'].includes(b.deger)) ev.tema = b.deger; break;
+          case 'tema': if (['mavi', 'beyaz', 'zitlik', 'yesilkirmizi', 'soguksicak'].includes(b.deger)) ev.tema = b.deger; break;
           case 'soruEkrani': ev.screen = 'soru'; break;
           case 'sonraki': case 'onceki': {
             const ni = b.islem === 'sonraki' ? idx + 1 : idx - 1;
@@ -668,6 +686,25 @@ const server = http.createServer(async (req, res) => {
             const a = ev.answers[b.yanitId]; if (a) a.hidden = b.islem === 'gizle'; break;
           }
           case 'sifirla': ev.answers = {}; ev.participants = {}; ev.questions.forEach((x) => { x.state = 'beklemede'; }); ev.currentQuestionId = null; ev.screen = 'lobi'; break;
+          case 'deneme': {
+            const adet = Math.max(1, Math.min(100, parseInt(b.adet, 10) || 10));
+            let hedef = ev.questions.filter((x) => x.state === 'acik');
+            if (!hedef.length) hedef = ev.questions;
+            for (let n = 0; n < adet; n++) {
+              const pid = 'deneme-' + uid(10);
+              ev.participants[pid] = { ad: '', kurum: '', birim: '', unvan: '', deneme: true, ts: Date.now() };
+              for (const x of hedef) ev.answers[x.id + ':' + pid] = { qid: x.id, pid, value: denemeDegeri(x), ts: Date.now(), hidden: false };
+            }
+            markDirty(ev, { meta: true });
+            return json(res, 200, { ok: true, eklenen: adet, soruSayisi: hedef.length });
+          }
+          case 'denemeSil': {
+            let silinen = 0;
+            for (const [pid, p] of Object.entries(ev.participants)) if (p.deneme) { delete ev.participants[pid]; silinen++; }
+            for (const [k, a] of Object.entries(ev.answers)) if (!ev.participants[a.pid]) delete ev.answers[k];
+            markDirty(ev, { meta: true });
+            return json(res, 200, { ok: true, silinen });
+          }
           case 'soruSifirla': if (q) for (const [k, a] of Object.entries(ev.answers)) if (a.qid === q.id) delete ev.answers[k]; break;
           default: return json(res, 400, { hata: 'Bilinmeyen işlem' });
         }

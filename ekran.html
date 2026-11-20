@@ -147,6 +147,15 @@
   body.tema-zitlik.tek-olumsuz { background: radial-gradient(1100px 600px at 50% 40%, #252830, #15171c 70%, #0c0d10); --metin: #e5e7eb; --soluk: #8b93a1; }
   body.tema-zitlik.tek-olumsuz .soru-bas h2, body.tema-zitlik.tek-olumsuz .marka-ana, body.tema-zitlik.tek-olumsuz .ust .ad b { color: #e5e7eb; }
   /* Yeşil–kırmızı: koyu lacivert zemin; olumlu kartı yeşil, olumsuz kartı kırmızı ışıklı */
+  /* Sol soğuk · Sağ sıcak */
+  body.tema-soguksicak .tk.ton-olumlu { border-color: rgba(56,189,248,.45); box-shadow: 0 0 0 1px rgba(56,189,248,.12), 0 12px 32px rgba(14,116,144,.22); background: linear-gradient(160deg, rgba(14,40,66,.92), rgba(8,22,40,.92)); }
+  body.tema-soguksicak .tk.ton-olumlu::before { background: linear-gradient(90deg, transparent, #7dd3fc, transparent); background-size: 200% 100%; }
+  body.tema-soguksicak .tk.ton-olumsuz { border-color: rgba(251,146,60,.45); box-shadow: 0 0 0 1px rgba(251,146,60,.12), 0 12px 32px rgba(194,65,12,.22); background: linear-gradient(160deg, rgba(48,28,24,.92), rgba(28,16,18,.92)); }
+  body.tema-soguksicak .tk.ton-olumsuz::before { background: linear-gradient(90deg, transparent, #fdba74, transparent); background-size: 200% 100%; }
+  body.tema-soguksicak .tk.ton-olumlu .tk-bas, body.tema-soguksicak.tek-olumlu .soru-bas .sira { color: #38bdf8; }
+  body.tema-soguksicak .tk.ton-olumsuz .tk-bas, body.tema-soguksicak.tek-olumsuz .soru-bas .sira { color: #fb923c; }
+  body.tema-soguksicak.tek-olumlu { background: radial-gradient(1100px 600px at 50% 40%, #0f2a44, #0a1a2e 70%, #060f1c); }
+  body.tema-soguksicak.tek-olumsuz { background: radial-gradient(1100px 600px at 50% 40%, #33201b, #1f1414 70%, #120b0c); }
   body.tema-yesilkirmizi .tk.ton-olumlu { border-color: rgba(74,222,128,.45); box-shadow: 0 0 0 1px rgba(74,222,128,.15), 0 12px 32px rgba(22,163,74,.18); }
   body.tema-yesilkirmizi .tk.ton-olumlu::before { background: linear-gradient(90deg, transparent, #86efac, transparent); background-size: 200% 100%; }
   body.tema-yesilkirmizi .tk.ton-olumsuz { border-color: rgba(248,113,113,.45); box-shadow: 0 0 0 1px rgba(248,113,113,.15), 0 12px 32px rgba(220,38,38,.18); }
@@ -194,13 +203,17 @@ const sahne = document.getElementById('sahne');
 
 
 /* ===== Renk temaları =====
-   mavi: koyu lacivert (varsayılan) · beyaz: açık · zitlik: olumlu parlak / olumsuz koyu · yesilkirmizi: olumlu yeşil / olumsuz kırmızı */
-const TEMALAR = ['mavi', 'beyaz', 'zitlik', 'yesilkirmizi'];
-const TEMA_AD = { mavi: 'Mavi', beyaz: 'Beyaz', zitlik: 'Olumlu parlak · Olumsuz koyu', yesilkirmizi: 'Olumlu yeşil · Olumsuz kırmızı' };
+   mavi: koyu lacivert (varsayılan) · beyaz: açık · zitlik: olumlu parlak / olumsuz koyu · yesilkirmizi: olumlu yeşil / olumsuz kırmızı · soguksicak: sol 3 soğuk / sağ 3 sıcak renk */
+const TEMALAR = ['mavi', 'beyaz', 'zitlik', 'yesilkirmizi', 'soguksicak'];
+const TEMA_AD = { mavi: 'Mavi', beyaz: 'Beyaz', zitlik: 'Olumlu parlak · Olumsuz koyu', yesilkirmizi: 'Olumlu yeşil · Olumsuz kırmızı', soguksicak: 'Sol soğuk · Sağ sıcak' };
 const PALETLER = {
   zitlik: {
     olumlu: { renk: ['#e08e00', '#f2600c', '#16a34a', '#0891b2', '#db2777', '#7c3aed', '#2563eb'], zirve: '#c27c00', isik: 'rgba(255,190,40,.45)' },
     olumsuz: { renk: ['#9aa5b1', '#b56576', '#7b8794', '#a07d6b', '#8e83b0', '#7d8f86', '#c08497'], zirve: '#f1f5f9', isik: 'rgba(255,255,255,.18)' },
+  },
+  soguksicak: {
+    olumlu: { renk: ['#38bdf8', '#2dd4bf', '#a78bfa'], zirve: '#38bdf8', isik: 'rgba(56,189,248,.5)' },
+    olumsuz: { renk: ['#fb923c', '#facc15', '#f43f5e'], zirve: '#fb923c', isik: 'rgba(251,146,60,.5)' },
   },
   yesilkirmizi: {
     olumlu: { renk: ['#22c55e', '#4ade80', '#16a34a', '#86efac', '#34d399', '#a3e635', '#10b981'], zirve: '#4ade80', isik: 'rgba(74,222,128,.55)' },
@@ -213,12 +226,13 @@ function temaUygula() {
   const t = aktifTema();
   document.body.classList.remove(...TEMALAR.map((x) => 'tema-' + x));
   document.body.classList.add('tema-' + t);
-  document.body.classList.toggle('koyu', t === 'mavi' || t === 'yesilkirmizi');
+  document.body.classList.toggle('koyu', t === 'mavi' || t === 'yesilkirmizi' || t === 'soguksicak');
   if (t !== sonTema) { sonTema = t; sonEkran = ''; }
 }
 /* Bir sonuç kutusuna sorunun tonuna göre kelime paleti ver */
-function paletAyarla(kap, soru) {
-  const p = PALETLER[aktifTema()] && PALETLER[aktifTema()][soru.ton];
+function tonBul(soru, sira) { return soru.ton || (aktifTema() === 'soguksicak' && sira ? (sira % 2 ? 'olumlu' : 'olumsuz') : ''); }
+function paletAyarla(kap, soru, sira) {
+  const p = PALETLER[aktifTema()] && PALETLER[aktifTema()][tonBul(soru, sira)];
   if (p) { kap.dataset.palet = p.renk.join(','); kap.style.setProperty('--zirve', p.zirve); kap.style.setProperty('--zirve-isik', p.isik); }
   else { delete kap.dataset.palet; kap.style.removeProperty('--zirve'); kap.style.removeProperty('--zirve-isik'); }
 }
@@ -256,7 +270,7 @@ function ciz() {
   const lobi = !tumu && (s.screen !== 'soru' || !s.question);
   document.getElementById('ustKatil').classList.toggle('gizli', lobi);
   const anahtar = tumu ? 'tumu:' + s.tumu.map((x) => x.question.id).join(',') : lobi ? 'lobi' : 'soru:' + s.question.id;
-  const tekTon = !tumu && !lobi && s.question ? s.question.ton : '';
+  const tekTon = !tumu && !lobi && s.question ? tonBul(s.question, s.questionIndex) : '';
   document.body.classList.toggle('tek-olumlu', tekTon === 'olumlu');
   document.body.classList.toggle('tek-olumsuz', tekTon === 'olumsuz');
   const yap = () => { if (tumu) tumuCiz(); else if (lobi) lobiCiz(); else soruCiz(); };
@@ -300,7 +314,7 @@ function tumuCiz() {
   const satir = Math.ceil(n / sutun);
   if (!sahne.firstChild) {
     const iz = el('div', { class: 'izgara-tumu', style: { gridTemplateColumns: `repeat(${sutun}, minmax(0,1fr))`, gridTemplateRows: `repeat(${satir}, minmax(0,1fr))` } });
-    s.tumu.forEach((x, i) => iz.append(el('div', { class: 'tk' + (x.question.ton ? ' ton-' + x.question.ton : ''), 'data-q': x.question.id, style: { animationDelay: (i * 90) + 'ms' } },
+    s.tumu.forEach((x, i) => iz.append(el('div', { class: 'tk' + (tonBul(x.question, i + 1) ? ' ton-' + tonBul(x.question, i + 1) : ''), 'data-q': x.question.id, style: { animationDelay: (i * 90) + 'ms' } },
       el('div', {}, el('div', { class: 'tk-bas', text: 'SORU ' + (i + 1) }), el('h3', { text: x.question.text })),
       el('div', { class: 'tk-sonuc' }), el('div', { class: 'tk-alt' }))));
     sahne.append(iz);
@@ -312,7 +326,7 @@ function tumuCiz() {
     if (!x.question.showResults) { kap.dataset.anahtar = ''; kap.replaceChildren(el('div', { class: 'gizli-sonuc' }, el('b', { style: { fontSize: '2.2em' }, text: fmtSayi(x.results.respondents) }), el('div', { style: { fontSize: '.6em' }, text: 'yanıt · sonuç gizli' }))); }
     else {
       if (kap.querySelector('.gizli-sonuc')) kap.replaceChildren();
-      paletAyarla(kap, x.question);
+      paletAyarla(kap, x.question, s.tumu.indexOf(x) + 1);
       const k = (x.question.options || []).length;
       kap.style.setProperty('--cubuk-yuk', k > 7 ? '.8em' : k > 5 ? '.95em' : '1.1em');
       kap.style.setProperty('--cubuk-yazi', k > 7 ? '.5em' : '.56em');
@@ -350,7 +364,7 @@ function soruCiz() {
     kap.replaceChildren(el('div', { class: 'gizli-sonuc' }, el('b', { text: fmtSayi(s.results.respondents) }), el('div', { text: 'kişi yanıtladı · sonuçlar birazdan' })));
   } else {
     if (kap.querySelector('.gizli-sonuc')) kap.replaceChildren();
-    paletAyarla(kap, q);
+    paletAyarla(kap, q, s.questionIndex);
     sonucCiz(kap, q, s.results, { kisiler: s.showNames, enFazla: 24, yarisAdet: 10 });
   }
   const alt = document.getElementById('altCubuk');

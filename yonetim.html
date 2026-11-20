@@ -317,6 +317,16 @@ async function kontrol(islem, ek = {}) {
   } catch (e) { bildir(e.message); }
 }
 
+async function denemeEkle(adet) {
+  try { const r = await api('/etkinlik/' + ev.id + '/kontrol', 'POST', { islem: 'deneme', adet }); bildir(`${r.eklenen} deneme katılımcısı eklendi (${r.soruSayisi} soru)`); }
+  catch (e) { bildir(e.message); }
+}
+async function denemeSil() {
+  if (!confirm('Deneme düğmesiyle eklenen tüm sahte yanıtlar silinsin mi? Gerçek yanıtlar korunur.')) return;
+  try { const r = await api('/etkinlik/' + ev.id + '/kontrol', 'POST', { islem: 'denemeSil' }); bildir(`${r.silinen} deneme katılımcısı silindi`); }
+  catch (e) { bildir(e.message); }
+}
+
 function canliCiz(kap) {
   if (ev.status !== 'aktif') kap.replaceChildren(el('div', { class: 'kart', style: { marginBottom: '14px', background: '#fff7e8' } }, `Etkinlik "${ev.status === 'taslak' ? 'Taslak' : 'Kapalı'}" durumda; katılımcılar kayıt olamaz ve yanıt veremez. Toplantı başlamadan önce sağ üstten "Aktif" yapın.`));
   else kap.replaceChildren();
@@ -327,9 +337,11 @@ function canliCiz(kap) {
     el('button', { class: 'btn' + (ev.screen === 'lobi' ? ' turkuaz' : ''), text: '▣ Lobi / QR ekranı', onclick: () => kontrol('lobi') }),
     el('button', { class: 'btn' + (ev.screen === 'tumu' ? ' turkuaz' : ''), text: '▦ Tüm soruları yansıt', title: 'Bütün soruların sonuçlarını tek ekranda gösterir', onclick: () => kontrol('tumu') }),
     el('label', {}, 'Ekran teması:', el('select', { style: { width: 'auto' }, onchange: (e) => kontrol('tema', { deger: e.target.value }) },
-      ...[['mavi', 'Mavi (koyu)'], ['beyaz', 'Beyaz'], ['zitlik', 'Olumlu parlak · Olumsuz koyu'], ['yesilkirmizi', 'Olumlu yeşil · Olumsuz kırmızı']].map(([d, a]) => el('option', { value: d, text: a, selected: (ev.tema || 'mavi') === d })))),
+      ...[['mavi', 'Mavi (koyu)'], ['beyaz', 'Beyaz'], ['zitlik', 'Olumlu parlak · Olumsuz koyu'], ['yesilkirmizi', 'Olumlu yeşil · Olumsuz kırmızı'], ['soguksicak', 'Sol soğuk · Sağ sıcak']].map(([d, a]) => el('option', { value: d, text: a, selected: (ev.tema || 'mavi') === d })))),
     el('button', { class: 'btn', text: 'Tümünü aç', title: 'Anket kipi: tüm sorular aynı anda telefonlarda görünür', onclick: () => kontrol('tumunuAc') }),
     el('button', { class: 'btn', text: 'Tümünü kapat', onclick: () => kontrol('tumunuKapat') }),
+    el('button', { class: 'btn', text: '🧪 10 deneme yanıtı', title: 'Yanıta açık sorulara (hiçbiri açık değilse tüm sorulara) rastgele yanıt veren 10 sahte katılımcı ekler', onclick: () => denemeEkle(10) }),
+    el('button', { class: 'btn', text: 'Deneme yanıtlarını sil', title: 'Sadece deneme düğmesiyle eklenen sahte katılımcıları ve yanıtlarını siler; gerçek yanıtlara dokunmaz', onclick: () => denemeSil() }),
     el('label', {}, el('input', { type: 'checkbox', checked: oncekiniKapat, onchange: (e) => { oncekiniKapat = e.target.checked; } }), 'İlerlerken önceki soruyu kapat'),
     el('div', { class: 'sayi' }, el('span', { class: 'etiket aktif', id: 'katSayi', text: (canli ? canli.participantCount : 0) + ' katılımcı' })));
   const liste = el('div', { id: 'soruListesi' });
